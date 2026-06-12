@@ -58,7 +58,7 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: transform 0.1s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
@@ -119,7 +119,9 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.4s;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+            transform: translateZ(0);
         }
 
         .flashcard.flipped .card-inner {
@@ -131,10 +133,11 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 600;
             border-radius: 12px;
             border: 2px solid #e2e8f0;
@@ -165,13 +168,38 @@
 
         .controls button {
             flex: none;
-            width: 95px;
+            width: 105px;
             padding: 10px;
         }
 
-        /* Quiz Styles */
+        .card-indicator-text {
+            font-weight: bold; 
+            color: #555;
+        }
+
+        /* Quiz Styles & Progress Bar */
         .hidden {
             display: none !important;
+        }
+
+        .quiz-container-block {
+            width: 100%;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #edf2f7;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4257b2;
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .quiz-question {
@@ -207,7 +235,7 @@
             font-size: 16px;
             font-weight: bold;
             margin-top: 15px;
-            min-height: 22px;
+            min-height: 24px;
         }
         .correct { color: #2e7d32; }
         .wrong { color: #c62828; }
@@ -219,7 +247,81 @@
             margin-top: 10px;
         }
 
+        /* Modern Analytics Section */
+        .mistakes-container {
+            width: 100%;
+            margin-top: 25px;
+            text-align: left;
+            border-top: 2px dashed #cbd5e0;
+            padding-top: 15px;
+        }
+
+        .mistakes-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #c62828;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .clear-mistakes-btn {
+            background-color: #fff;
+            color: #c62828;
+            border: 1px solid #c62828;
+            font-size: 11px;
+            padding: 4px 8px;
+            width: auto;
+            flex: none;
+            box-shadow: none;
+        }
+
+        .clear-mistakes-btn:active {
+            background-color: #ffebee;
+        }
+
+        .mistakes-list {
+            max-height: 220px;
+            overflow-y: auto;
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .mistake-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #fed7d7;
+            font-size: 13.5px;
+        }
+
+        .mistake-item:last-child {
+            border-bottom: none;
+        }
+
+        .mistake-badge {
+            background-color: #e53e3e;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 7px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         /* Form Styles */
+        .admin-title {
+            font-size: 15px; 
+            margin-bottom: 15px; 
+            color: #4257b2; 
+            text-align: center; 
+            font-weight: bold;
+        }
+
         .form-group {
             margin-bottom: 15px;
             width: 100%;
@@ -328,7 +430,7 @@
 <body>
 
     <h1>ජපන් භාෂා සහකරු</h1>
-    <p class="subtitle">Flashcards & Quiz App (Pro)</p>
+    <p class="subtitle">Flashcards & Smart Quiz Analyzer</p>
 
     <div class="container">
         <div class="nav-buttons">
@@ -346,13 +448,16 @@
             </div>
             <div class="controls">
                 <button onclick="prevCard()">◀ පසුපසට</button>
-                <span id="card-indicator" style="font-weight: bold; color: #555;">1 / 110</span>
+                <span id="card-indicator" class="card-indicator-text">1 / 110</span>
                 <button onclick="nextCard()">ඉදිරියට ▶</button>
             </div>
         </div>
 
         <div id="quiz-section" class="quiz-view hidden">
-            <div id="quiz-game" style="width: 100%;">
+            <div id="quiz-game" class="quiz-container-block">
+                <div class="progress-container">
+                    <div class="progress-bar" id="quiz-progress"></div>
+                </div>
                 <div class="quiz-question" id="quiz-question-text">ප්‍රශ්නය මෙතනට...</div>
                 <div class="options-grid" id="options-container"></div>
                 <div id="quiz-feedback" class="feedback"></div>
@@ -362,25 +467,32 @@
                 <p id="score-display" class="score-text">ලකුණු: 0/0</p>
                 <button onclick="startQuiz()" style="margin-top: 25px; width: 160px;">නැවත උත්සාහ කරන්න</button>
             </div>
+
+            <div class="mistakes-container" id="mistakes-panel">
+                <div class="mistakes-title">
+                    <span>📊 වැඩිපුරම වරදින වචන විශ්ලේෂණය (Analytics)</span>
+                    <button class="clear-mistakes-btn" onclick="clearMistakesList()">Reset Data</button>
+                </div>
+                <div class="mistakes-list" id="mistakes-list-box"></div>
+            </div>
         </div>
 
         <div id="admin-section" class="admin-view hidden">
-            <h3 style="font-size: 15px; margin-bottom: 15px; color: #4257b2; text-align: center; font-weight: bold;">නව වචන ඇතුළත් කිරීමේ පුවරුව</h3>
+            <h3 class="admin-title">නව වචන ඇතුළත් කිරීමේ පුවරුව</h3>
             
             <div class="form-group">
                 <label>ජපන් වචනය (හිරගනා / කටකනා):</label>
-                <input type="text" id="input-term" placeholder="උදා: ありがとう" style="user-select: text; -webkit-user-select: text;">
+                <input type="text" id="input-term" placeholder="උදා: ありがとう">
             </div>
             <div class="form-group">
                 <label>සිංහල තේරුම:</label>
-                <input type="text" id="input-definition" placeholder="උදා: ස්තූතියි" style="user-select: text; -webkit-user-select: text;">
+                <input type="text" id="input-definition" placeholder="උදා: ස්තූතියි">
             </div>
             
             <button onclick="addNewWord()" style="background-color: #4257b2; margin-bottom: 15px; width: 100%;">වචනය සුරකින්න (Save Word)</button>
             
             <div class="section-title">දැනට පවතින වචන ලැයිස්තුව (<span id="total-words-count">0</span>)</div>
-            <div class="word-list-container" id="word-list-container">
-                </div>
+            <div class="word-list-container" id="word-list-container"></div>
 
             <div class="backup-buttons">
                 <button onclick="exportWords()">Backup (Export JSON)</button>
@@ -391,12 +503,13 @@
     </div>
 
     <script>
+        // Default data array
         const defaultStudyData = [
             { term: "あさ", definition: "උදේ" },
             { term: "うえ", definition: "උඩ / ඉහළ" },
             { term: "いえ", definition: "ගෙදර" },
             { term: "えび", definition: "ඉස්සා" },
-            { term: "おとも", definition: "ශබ්දය" },
+            { term: "おと", definition: "ශබ්දය" },
             { term: "かお", definition: "මුහුණ" },
             { term: "きた", definition: "උතුර" },
             { term: "くるま", definition: "කාර් එක / වාහනය" },
@@ -407,12 +520,12 @@
             { term: "ざっし", definition: "සඟරාව" },
             { term: "じかん", definition: "වේලාව" },
             { term: "ずが", definition: "චිත්‍ර එකතුව" },
-            { term: "ぜろ", definition: "බිංදුව (0)" },
+            { term: "ぜろ", definition: "බिංදුව (0)" },
             { term: "ぞう", definition: "අලියා" },
             { term: "だめ", definition: "එපා / බෑ" },
             { term: "おやすみなさい", definition: "සුබ රාත්‍රියක් (Good night)" },
             { term: "でんしゃ", definition: "දුම්රිය" },
-            { term: "ばしょ", definition: "ස්ථානය" },
+            { term: "ば場所", definition: "ස්ථානය" },
             { term: "びっくり", definition: "පුදුමය / ගැස්සීම" },
             { term: "べんり", definition: "පහසුව / පහසුයි" },
             { term: "ぼうし", definition: "තොප්පිය" },
@@ -422,13 +535,13 @@
             { term: "は", definition: "දත / දත්" },
             { term: "くちびる", definition: "තොල / තොල්" },
             { term: "ほっぺた", definition: "කම්මුල" },
-            { term: "のど", definition: "උගුර" },
+            { term: "のど", definition: "උგුර" },
             { term: "くび", definition: "බෙල්ල" },
             { term: "かた", definition: "උරහිස" },
-            { term: "せなか", definition: "පิต (Back)" },
+            { term: "せなか", definition: "පිට (Back)" },
             { term: "むね", definition: "පපුව" },
             { term: "おなか", definition: "බඩ" },
-            { term: "うで", definition: "අත (Arm / ඉහළ බාහුව)" },
+            { term: "うで", definition: "අත (Arm - මුළු අතම)" },
             { term: "ふともも", definition: "කලව" },
             { term: "ひざ", definition: "දණහිස" },
             { term: "ひじ", definition: "වැලමිට" },
@@ -442,7 +555,6 @@
             { term: "へそ", definition: "බුරිය" },
             { term: "つまさき", definition: "කකුලේ ඇඟිලි තුඩු / පය තුඩු" },
             { term: "て", definition: "අත (Hand - අල්ල කොටස)" },
-            { term: "うで", definition: "අත (Arm - මුළු අතම)" },
             { term: "てくび", definition: "මැණික් කටුව" },
             { term: "おしり", definition: "පස්ස (Buttocks)" },
             { term: "からだ", definition: "ශරීරය" },
@@ -454,7 +566,7 @@
             { term: "はつおん", definition: "උච්චාරණය (Pronunciation)" },
             { term: "さっき", definition: "කලින් / මීට ටික වෙලාවකට කලින්" },
             { term: "きっぷ", definition: "ටිකට්පත (Ticket)" },
-            { term: "きって", definition: "මුද්දරය" },
+            { term: "きった", definition: "මුද්දරය" },
             { term: "ひたい", definition: "නළල" },
             { term: "まゆげ", definition: "ඇහිබැම" },
             { term: "あご", definition: "নিকට" },
@@ -465,12 +577,12 @@
             { term: "がいこくじん", definition: "විදේශිකයා" },
             { term: "くに", definition: "රට" },
             { term: "ちち / おとうさん", definition: "තාත්තා" },
-            { term: "はは / おකあさん", definition: "අම්මා" },
+            { term: "はは / おかあさん", definition: "අම්මා" },
             { term: "りょうしん", definition: "දෙමාපියන්" },
             { term: "あに / おにいさん", definition: "අයියා" },
             { term: "あね / おねえさん", definition: "අක්කා" },
-            { term: "おとうto", definition: "මල්ලි" },
-            { term: "いもうto", definition: "නංගි" },
+            { term: "おとうと", definition: "මල්ලි" },
+            { term: "いもうて", definition: "නංගි" },
             { term: "きょうだい", definition: "සහෝදර සහෝදරියන්" },
             { term: "しまい", definition: "සහෝදරියන් (විතරක්ම)" },
             { term: "そふ / おじいさん", definition: "සීයා" },
@@ -493,7 +605,7 @@
             { term: "すうじ", definition: "අංකය / ඉලක්කම" },
             { term: "ごはん", definition: "බත් / ආහාරය" },
             { term: "しんぶん", definition: "පත්තරය" },
-            { term: "ゆう가た", definition: "සවස / හැන්දෑව" },
+            { term: "ゆうぐた", definition: "සවස / හැන්දෑව" },
             { term: "さかな", definition: "මාළුවා" },
             { term: "すきです", definition: "කැමතියි" },
             { term: "きらいです", definition: "අකමැතියි" },
@@ -506,54 +618,107 @@
         ];
 
         let studyData = [];
+        let mistakesAnalytics = {}; // Object Structure: { "あさ": { definition: "උදේ", count: 3 } }
         let currentCardIndex = 0;
         let currentQuizIndex = 0;
         let score = 0;
         let canAnswer = true;
         let activeQuizData = [];
 
-        function loadData() {
-            const savedData = localStorage.getItem('japanese_study_data');
-            if (savedData && JSON.parse(savedData).length > 0) {
-                studyData = JSON.parse(savedData);
-            } else {
-                studyData = [...defaultStudyData];
-                saveDataToStorage();
+        // DOM Cached Elements
+        const flashcardEl = document.querySelector('.flashcard');
+        const frontTextEl = document.getElementById('front-text');
+        const backTextEl = document.getElementById('back-text');
+        const cardIndicatorEl = document.getElementById('card-indicator');
+        const totalWordsCountEl = document.getElementById('total-words-count');
+        const wordListContainerEl = document.getElementById('word-list-container');
+        const mistakesListBoxEl = document.getElementById('mistakes-list-box');
+        const quizProgressEl = document.getElementById('quiz-progress');
+        
+        const flashcardSection = document.getElementById('flashcard-section');
+        const quizSection = document.getElementById('quiz-section');
+        const adminSection = document.getElementById('admin-section');
+        
+        const showCardsBtn = document.getElementById('show-cards-btn');
+        const showQuizBtn = document.getElementById('show-quiz-btn');
+        const showAdminBtn = document.getElementById('show-admin-btn');
+        
+        const quizGameEl = document.getElementById('quiz-game');
+        const quizResultEl = document.getElementById('quiz-result');
+        const quizFeedbackEl = document.getElementById('quiz-feedback');
+        const quizQuestionTextEl = document.getElementById('quiz-question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const scoreDisplayEl = document.getElementById('score-display');
+
+        // Fisher-Yates Shuffling Optimization
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
+            return array;
+        }
+
+        function loadData() {
+            // Main Study Data
+            try {
+                const savedData = localStorage.getItem('japanese_study_data');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed && parsed.length > 0) studyData = parsed;
+                } else {
+                    studyData = [...defaultStudyData];
+                    localStorage.setItem('japanese_study_data', JSON.stringify(studyData));
+                }
+            } catch (e) {
+                studyData = [...defaultStudyData];
+            }
+
+            // Analytics Data Loader
+            try {
+                const savedAnalytics = localStorage.getItem('japanese_analytics_data');
+                if (savedAnalytics) {
+                    mistakesAnalytics = JSON.parse(savedAnalytics);
+                }
+            } catch (e) {
+                console.error("Error loading analytics tracker", e);
+            }
+
             updateCard();
             renderAdminWordList();
+            renderAnalyticsList();
         }
 
         function saveDataToStorage() {
             localStorage.setItem('japanese_study_data', JSON.stringify(studyData));
-            document.getElementById('total-words-count').innerText = studyData.length;
+            totalWordsCountEl.innerText = studyData.length;
         }
 
-        // --- Flashcard Functions ---
+        function saveAnalyticsToStorage() {
+            localStorage.setItem('japanese_analytics_data', JSON.stringify(mistakesAnalytics));
+            renderAnalyticsList();
+        }
+
+        // --- Flashcards ---
         function updateCard() {
-            const card = document.querySelector('.flashcard');
-            card.classList.remove('flipped');
-            
+            flashcardEl.classList.remove('flipped');
             if (studyData.length === 0) {
-                document.getElementById('front-text').innerText = "වචන නැත";
-                document.getElementById('back-text').innerText = "කරුණාකර ඇතුළත් කරන්න";
-                document.getElementById('card-indicator').innerText = "0 / 0";
+                frontTextEl.innerText = "වචන නැත";
+                backTextEl.innerText = "කරුණාකර ඇතුළත් කරන්න";
+                cardIndicatorEl.innerText = "0 / 0";
                 return;
             }
-
             if (currentCardIndex >= studyData.length) currentCardIndex = 0;
 
             setTimeout(() => {
-                document.getElementById('front-text').innerText = studyData[currentCardIndex].term;
-                document.getElementById('back-text').innerText = studyData[currentCardIndex].definition;
-                document.getElementById('card-indicator').innerText = `${currentCardIndex + 1} / ${studyData.length}`;
+                frontTextEl.innerText = studyData[currentCardIndex].term;
+                backTextEl.innerText = studyData[currentCardIndex].definition;
+                cardIndicatorEl.innerText = `${currentCardIndex + 1} / ${studyData.length}`;
             }, 150);
         }
 
         function toggleFlip() {
-            if (studyData.length > 0) {
-                document.querySelector('.flashcard').classList.toggle('flipped');
-            }
+            if (studyData.length > 0) flashcardEl.classList.toggle('flipped');
         }
 
         function nextCard() {
@@ -570,50 +735,53 @@
             }
         }
 
-        // --- Tab Switcher ---
+        // --- View Navigation ---
         function switchView(view) {
-            document.getElementById('flashcard-section').classList.add('hidden');
-            document.getElementById('quiz-section').classList.add('hidden');
-            document.getElementById('admin-section').classList.add('hidden');
+            flashcardSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            adminSection.classList.add('hidden');
             
-            document.getElementById('show-cards-btn').classList.add('secondary');
-            document.getElementById('show-quiz-btn').classList.add('secondary');
-            document.getElementById('show-admin-btn').classList.add('secondary');
+            showCardsBtn.classList.add('secondary');
+            showQuizBtn.classList.add('secondary');
+            showAdminBtn.classList.add('secondary');
 
             if (view === 'cards') {
-                document.getElementById('flashcard-section').classList.remove('hidden');
-                document.getElementById('show-cards-btn').classList.remove('secondary');
+                flashcardSection.classList.remove('hidden');
+                showCardsBtn.classList.remove('secondary');
                 updateCard();
             } else if (view === 'quiz') {
-                document.getElementById('quiz-section').classList.remove('hidden');
-                document.getElementById('show-quiz-btn').classList.remove('secondary');
+                quizSection.classList.remove('hidden');
+                showQuizBtn.classList.remove('secondary');
+                renderAnalyticsList(); 
                 startQuiz();
             } else if (view === 'admin') {
-                document.getElementById('admin-section').classList.remove('hidden');
-                document.getElementById('show-admin-btn').classList.remove('secondary');
+                adminSection.classList.remove('hidden');
+                showAdminBtn.classList.remove('secondary');
                 renderAdminWordList();
             }
         }
 
-        // --- Quiz Functions ---
+        // --- Quiz Control System ---
         function startQuiz() {
             currentQuizIndex = 0;
             score = 0;
             canAnswer = true;
             
             if (studyData.length < 4) {
-                document.getElementById('quiz-game').classList.add('hidden');
-                document.getElementById('quiz-result').classList.remove('hidden');
-                document.getElementById('score-display').innerText = "Quiz එක ආරම්භ කිරීමට අවම වශයෙන් වචන 4ක් වත් තිබිය යුතුය.";
+                quizGameEl.classList.add('hidden');
+                quizResultEl.classList.remove('hidden');
+                quizProgressEl.style.width = '0%';
+                scoreDisplayEl.innerText = "Quiz එක ආරම්භ කිරීමට අවම වශයෙන් වචන 4ක් වත් තිබිය යුතුය.";
                 return;
             }
 
             const limit = Math.min(10, studyData.length);
-            activeQuizData = [...studyData].sort(() => Math.random() - 0.5).slice(0, limit);
+            activeQuizData = shuffleArray([...studyData]).slice(0, limit);
             
-            document.getElementById('quiz-game').classList.remove('hidden');
-            document.getElementById('quiz-result').classList.add('hidden');
-            document.getElementById('quiz-feedback').innerText = '';
+            quizGameEl.classList.remove('hidden');
+            quizResultEl.classList.add('hidden');
+            quizFeedbackEl.innerText = '';
+            quizProgressEl.style.width = '0%';
             loadQuizQuestion();
         }
 
@@ -624,48 +792,62 @@
             }
 
             canAnswer = true;
-            document.getElementById('quiz-feedback').innerText = '';
+            quizFeedbackEl.innerText = '';
+            
+            // Progress tracker animation
+            const progressPercent = (currentQuizIndex / activeQuizData.length) * 100;
+            quizProgressEl.style.width = `${progressPercent}%`;
+
             const currentData = activeQuizData[currentQuizIndex];
-            document.getElementById('quiz-question-text').innerText = `"${currentData.term}" යන්නෙහි සිංහල තේරුම කුමක්ද? (${currentQuizIndex + 1}/${activeQuizData.length})`;
+            quizQuestionTextEl.innerText = `"${currentData.term}" යන්නෙහි සිංහල තේරුම කුමක්ද? (${currentQuizIndex + 1}/${activeQuizData.length})`;
 
-            let options = [currentData.definition];
-            while (options.length < 4) {
-                let randomDef = studyData[Math.floor(Math.random() * studyData.length)].definition;
-                if (!options.includes(randomDef)) {
-                    options.push(randomDef);
-                }
+            const optionsSet = new Set();
+            optionsSet.add(currentData.definition);
+            
+            while (optionsSet.size < 4) {
+                const randomDef = studyData[Math.floor(Math.random() * studyData.length)].definition;
+                optionsSet.add(randomDef);
             }
-            options.sort(() => Math.random() - 0.5);
+            
+            const options = Array.from(optionsSet);
+            shuffleArray(options);
 
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-
+            optionsContainerEl.innerHTML = '';
             options.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'option-btn';
                 button.innerText = option;
-                button.onclick = () => checkAnswer(button, option, currentData.definition);
-                optionsContainer.appendChild(button);
+                button.onclick = () => checkAnswer(button, option, currentData.definition, currentData);
+                optionsContainerEl.appendChild(button);
             });
         }
 
-        function checkAnswer(clickedButton, selected, correct) {
+        function checkAnswer(clickedButton, selected, correct, fullWordObject) {
             if (!canAnswer) return;
             canAnswer = false;
-
-            const feedbackEl = document.getElementById('quiz-feedback');
 
             if (selected === correct) {
                 score++;
                 clickedButton.style.backgroundColor = '#c8e6c9';
                 clickedButton.style.borderColor = '#81c784';
-                feedbackEl.innerText = "නිවැරදියි! 🎉";
-                feedbackEl.className = "feedback correct";
+                quizFeedbackEl.innerText = "නිවැරදියි! 🎉";
+                quizFeedbackEl.className = "feedback correct";
             } else {
                 clickedButton.style.backgroundColor = '#ffcdd2';
                 clickedButton.style.borderColor = '#e57373';
-                feedbackEl.innerText = `වැරදියි! නිවැරදි පිළිතුර: ${correct}`;
-                feedbackEl.className = "feedback wrong";
+                quizFeedbackEl.innerText = `වැරදියි! නිවැරදි පිළිතුර: ${correct}`;
+                quizFeedbackEl.className = "feedback wrong";
+
+                // Intelligent Analytics Tracker Increment
+                if (mistakesAnalytics[fullWordObject.term]) {
+                    mistakesAnalytics[fullWordObject.term].count += 1;
+                } else {
+                    mistakesAnalytics[fullWordObject.term] = {
+                        definition: fullWordObject.definition,
+                        count: 1
+                    };
+                }
+                saveAnalyticsToStorage();
             }
 
             setTimeout(() => {
@@ -675,25 +857,72 @@
         }
 
         function showQuizResults() {
-            document.getElementById('quiz-game').classList.add('hidden');
-            document.getElementById('quiz-result').classList.remove('hidden');
-            document.getElementById('score-display').innerText = `ඔබේ ලකුණු සංඛ්‍යාව: ${score} / ${activeQuizData.length}`;
+            quizProgressEl.style.width = '100%';
+            quizGameEl.classList.add('hidden');
+            quizResultEl.classList.remove('hidden');
+            scoreDisplayEl.innerText = `ඔබේ ලකුණු සංඛ්‍යාව: ${score} / ${activeQuizData.length}`;
         }
 
-        // --- Word Management Functions ---
+        // --- Smart Analytics Handler ---
+        function renderAnalyticsList() {
+            mistakesListBoxEl.innerHTML = '';
+            
+            // Map object to array format for sorting capabilities
+            const sortedAnalyticsArray = [];
+            for (const key in mistakesAnalytics) {
+                if (mistakesAnalytics.hasOwnProperty(key)) {
+                    sortedAnalyticsArray.push({
+                        term: key,
+                        definition: mistakesAnalytics[key].definition,
+                        count: mistakesAnalytics[key].count
+                    });
+                }
+            }
+
+            if (sortedAnalyticsArray.length === 0) {
+                mistakesListBoxEl.innerHTML = '<div class="empty-text" style="padding:10px;">තවම වැරදුණු වචන කිසිවක් නැත. සුපිරි! 🎯</div>';
+                return;
+            }
+
+            // High to Low Sort Logic
+            sortedAnalyticsArray.sort((a, b) => b.count - a.count);
+
+            const fragment = document.createDocumentFragment();
+            sortedAnalyticsArray.forEach(item => {
+                const element = document.createElement('div');
+                element.className = 'mistake-item';
+                element.innerHTML = `
+                    <div>
+                        <span style="font-weight:bold; color:#2d3748; margin-right:8px;">${item.term}</span>
+                        <span style="color:#718096; font-size:12.5px;">(${item.definition})</span>
+                    </div>
+                    <span class="mistake-badge">x${item.count}</span>
+                `;
+                fragment.appendChild(element);
+            });
+            mistakesListBoxEl.appendChild(fragment);
+        }
+
+        function clearMistakesList() {
+            if (Object.keys(mistakesAnalytics).length > 0 && confirm("සියලුම වැරදීම් පිළිබඳ දත්ත (Analytics) මකා දැමීමට අවශ්‍යද?")) {
+                mistakesAnalytics = {};
+                saveAnalyticsToStorage();
+            }
+        }
+
+        // --- Data Insertion / Deletion Dashboard ---
         function addNewWord() {
             const termInput = document.getElementById('input-term');
             const defInput = document.getElementById('input-definition');
-            
             const term = termInput.value.trim();
             const definition = defInput.value.trim();
 
-            if (term === "" || definition === "") {
+            if (!term || !definition) {
                 alert("කරුණාකර ජපන් වචනය සහ සිංහල තේරුම යන දෙකම ඇතුළත් කරන්න.");
                 return;
             }
 
-            studyData.unshift({ term: term, definition: definition });
+            studyData.unshift({ term, definition });
             saveDataToStorage();
             renderAdminWordList();
             
@@ -715,15 +944,15 @@
         }
 
         function renderAdminWordList() {
-            const container = document.getElementById('word-list-container');
-            document.getElementById('total-words-count').innerText = studyData.length;
-            container.innerHTML = '';
+            totalWordsCountEl.innerText = studyData.length;
+            wordListContainerEl.innerHTML = '';
 
             if (studyData.length === 0) {
-                container.innerHTML = '<div class="empty-text">ලැයිස්තුවේ වචන කිසිවක් නැත.</div>';
+                wordListContainerEl.innerHTML = '<div class="empty-text">ලැයිස්තුවේ වචන කිසිවක් නැත.</div>';
                 return;
             }
 
+            const fragment = document.createDocumentFragment();
             studyData.forEach((item, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'word-item';
@@ -734,11 +963,12 @@
                     </div>
                     <button class="delete-btn" onclick="deleteWord(${index})">මකන්න</button>
                 `;
-                container.appendChild(itemDiv);
+                fragment.appendChild(itemDiv);
             });
+            wordListContainerEl.appendChild(fragment);
         }
 
-        // --- Backup & Restore ---
+        // --- Data Backup & Cloud Migration Simulation ---
         function exportWords() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(studyData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -776,7 +1006,7 @@
             reader.readAsText(file);
         }
 
-        // ඇප් එක ලෝඩ් වෙනකොට මුලින්ම රන් වෙන්නේ මේකයි
+        // Trigger Bootstrapper
         loadData();
     </script>
 </body>
