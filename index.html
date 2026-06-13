@@ -7,30 +7,83 @@
     <!-- Excel ෆයිල් කියවීම සඳහා වන පුස්තකාලය (xlsx library) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:0;user-select:none;-webkit-user-select:none}
-        body{background-color:#f6f7fb;color:#333;display:flex;flex-direction:column;align-items:center;padding:12px;min-height:100vh}
-        h1{margin:10px 0 3px 0;color:#4257b2;font-size:20px;text-align:center}
-        p.subtitle{font-size:12px;color:#666;margin-bottom:15px}
+        :root {
+            --bg-color: #f6f7fb;
+            --container-bg: #fff;
+            --text-color: #333;
+            --sub-text: #666;
+            --border-color: #e2e8f0;
+            --input-border: #cbd5e0;
+            --card-front-bg: #fff;
+            --card-front-text: #333;
+            --option-btn-bg: #f0f2ff;
+            --option-btn-border: #cfd5ff;
+            --list-bg: #f8fafc;
+        }
+
+        /* Dark Mode Colors */
+        [data-theme="dark"] {
+            --bg-color: #121214;
+            --container-bg: #1a1a1e;
+            --text-color: #e2e8f0;
+            --sub-text: #a0aec0;
+            --border-color: #2d3748;
+            --input-border: #4a5568;
+            --card-front-bg: #2d3748;
+            --card-front-text: #f7fafc;
+            --option-btn-bg: #222533;
+            --option-btn-border: #3b4266;
+            --list-bg: #1e222b;
+        }
+
+        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:0;user-select:none;-webkit-user-select:none;transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
+        body{background-color: var(--bg-color);color: var(--text-color);display:flex;flex-direction:column;align-items:center;padding:12px;min-height:100vh}
+        
+        /* Top Header & Theme Switcher */
+        .header-wrapper {width:100%;max-width:450px;display:flex;justify-content:space-between;align-items:center;margin: 10px 0 15px 0;}
+        h1{color:#4257b2;font-size:20px;}
+        [data-theme="dark"] h1 {color: #798ee4;}
+        
+        /* Dark Mode Toggle Button */
+        .theme-toggle-btn {
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,.05);
+            width: auto; flex: none;
+        }
+
+        p.subtitle{font-size:12px;color: var(--sub-text);margin-top: -10px; margin-bottom:15px; text-align: center; width: 100%; max-width: 450px;}
         .container{width:100%;max-width:450px;display:flex;flex-direction:column;align-items:center}
         
-        /* Navigation Buttons - Mobile Optimized */
+        /* Navigation Buttons */
         .nav-buttons{margin-bottom:15px;display:flex;gap:6px;width:100%}
-        button{flex:1;background-color:#4257b2;color:#fff;border:none;padding:12px 6px;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;text-align:center}
+        button{flex:1;background-color:#4257b2;color:#fff;border:none;padding:12px 6px;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;text-align:center}
         button:active{transform:scale(.97)}
-        button.secondary{background-color:#fff;color:#4257b2;border:2px solid #4257b2;padding:10px 6px}
-        button.admin-btn{background-color:#eef2ff;color:#4257b2;border:2px solid #4257b2;box-shadow:0 2px 8px rgba(66,87,178,.15)}
+        button.secondary{background-color: var(--container-bg);color:#4257b2;border:2px solid #4257b2;padding:10px 6px}
+        [data-theme="dark"] button.secondary {color: #798ee4; border-color: #798ee4;}
+        button.admin-btn{background-color: var(--option-btn-bg);color:#4257b2;border:2px solid #4257b2;box-shadow:0 2px 8px rgba(66,87,178,.15)}
+        [data-theme="dark"] button.admin-btn {color: #798ee4; border-color: #798ee4;}
         button.admin-btn:active{background-color:#4257b2;color:#fff}
         
         /* Views */
-        .admin-view,.card-view,.quiz-view,.intro-view{background:#fff;padding:15px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:340px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-bottom:15px;width:100%}
+        .admin-view,.card-view,.quiz-view,.intro-view{background: var(--container-bg);padding:15px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:340px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-bottom:15px;width:100%;border: 1px solid var(--border-color);}
         .admin-view,.intro-view{justify-content:flex-start;align-items:stretch;text-align:left}
         
         /* Flashcards */
         .flashcard{width:100%;height:200px;perspective:1000px;cursor:pointer}
         .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s}
         .flashcard.flipped .card-inner{transform:rotateY(180deg)}
-        .card-back,.card-front{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;font-size:24px;font-weight:600;border-radius:12px;border:2px solid #e2e8f0;padding:12px;box-shadow:0 4px 6px rgba(0,0,0,.02);text-align:center;word-break:break-word}
-        .card-front{background-color:#fff;color:#333}
+        .card-back,.card-front{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;font-size:24px;font-weight:600;border-radius:12px;border:2px solid var(--border-color);padding:12px;box-shadow:0 4px 6px rgba(0,0,0,.02);text-align:center;word-break:break-word}
+        .card-front{background-color: var(--card-front-bg);color: var(--card-front-text)}
         .card-back{background-color:#4257b2;color:#fff;transform:rotateY(180deg);font-size:20px}
         .controls{display:flex;justify-content:space-between;align-items:center;margin-top:15px;width:100%;gap:10px}
         .controls button{flex:1;padding:10px;font-size:13px}
@@ -40,36 +93,41 @@
         .jiko-btn{background-color:#ff9800;color:#fff;margin-top:15px;font-size:14px;padding:12px;box-shadow:0 4px 10px rgba(255,152,0,0.25);width:100%}
         .jiko-btn:active{background-color:#e65100}
         .intro-container{max-height:380px;overflow-y:auto;padding-right:2px;margin-bottom:15px}
-        .intro-card{background:#f8fafc;border-left:4px solid #ff9800;padding:10px;margin-bottom:10px;border-radius:0 8px 8px 0;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
-        .intro-jp{font-size:15px;font-weight:700;color:#1a202c;margin-bottom:3px;word-break:break-word}
-        .intro-reading{font-size:12px;color:#e65100;font-style:italic;margin-bottom:4px}
-        .intro-si{font-size:12px;color:#4a5568;font-weight:500;line-height:1.3}
+        .intro-card{background: var(--list-bg);border-left:4px solid #ff9800;padding:10px;margin-bottom:10px;border-radius:0 8px 8px 0;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
+        .intro-jp{font-size:15px;font-weight:700;color: var(--text-color);margin-bottom:3px;word-break:break-word}
+        .intro-reading{font-size:12px;color:#ff9800;font-style:italic;margin-bottom:4px}
+        [data-theme="dark"] .intro-reading {color: #ffb74d;}
+        .intro-si{font-size:12px;color: var(--sub-text);font-weight:500;line-height:1.3}
         
         /* Quiz */
-        .quiz-question{font-size:16px;font-weight:600;margin-bottom:15px;color:#2d3748;line-height:1.4;text-align:center}
+        .quiz-question{font-size:16px;font-weight:600;margin-bottom:15px;color: var(--text-color);line-height:1.4;text-align:center}
         .options-grid{display:flex;flex-direction:column;gap:8px;width:100%}
-        .option-btn{background-color:#f0f2ff;color:#333;border:2px solid #cfd5ff;padding:12px 10px;font-size:14px;font-weight:500;border-radius:10px;text-align:center;width:100%;box-shadow:none;cursor:pointer}
+        .option-btn{background-color: var(--option-btn-bg);color: var(--text-color);border:2px solid var(--option-btn-border);padding:12px 10px;font-size:14px;font-weight:500;border-radius:10px;text-align:center;width:100%;box-shadow:none;cursor:pointer}
         .feedback{font-size:15px;font-weight:700;margin-top:12px;min-height:20px;text-align:center}
         .correct{color:#2e7d32}
+        [data-theme="dark"] .correct {color: #81c784;}
         .wrong{color:#c62828}
+        [data-theme="dark"] .wrong {color: #e57373;}
         .score-text{font-size:20px;font-weight:700;color:#2e7d32;margin-top:10px;text-align:center}
+        [data-theme="dark"] .score-text {color: #81c784;}
         
         /* Admin forms */
         .form-group{margin-bottom:12px;width:100%}
-        .form-group label{display:block;font-size:12px;font-weight:700;margin-bottom:4px;color:#4a5568}
-        .form-group input{width:100%;padding:10px;font-size:14px;border:2px solid #cbd5e0;border-radius:8px;outline:none;user-select:text!important;-webkit-user-select:text!important}
+        .form-group label{display:block;font-size:12px;font-weight:700;margin-bottom:4px;color: var(--text-color)}
+        .form-group input{width:100%;padding:10px;font-size:14px;border:2px solid var(--input-border);background-color: var(--container-bg);color: var(--text-color);border-radius:8px;outline:none;user-select:text!important;-webkit-user-select:text!important}
         .form-group input:focus{border-color:#4257b2}
-        .section-title{font-size:14px;font-weight:700;color:#4257b2;margin:12px 0 8px 0;border-bottom:2px solid #e2e8f0;padding-bottom:4px}
+        .section-title{font-size:14px;font-weight:700;color:#4257b2;margin:12px 0 8px 0;border-bottom:2px solid var(--border-color);padding-bottom:4px}
+        [data-theme="dark"] .section-title {color: #798ee4;}
         
-        /* Word List & Edit Mode Styles - Mobile Optimized Scrolling */
-        .word-list-container{max-height:240px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:4px;background:#f8fafc;width:100%}
-        .word-item{display:flex;flex-direction:column;padding:10px;border-bottom:1px solid #e2e8f0;background:#fff;margin-bottom:4px;border-radius:6px;text-align:left}
+        /* Word List & Edit Mode Styles */
+        .word-list-container{max-height:240px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:4px;background: var(--list-bg);width:100%}
+        .word-item{display:flex;flex-direction:column;padding:10px;border-bottom:1px solid var(--border-color);background: var(--container-bg);margin-bottom:4px;border-radius:6px;text-align:left}
         .word-view-mode{display:flex;justify-content:space-between;align-items:center;width:100%;gap:10px}
         .word-edit-mode{display:flex;flex-direction:column;gap:6px;width:100%}
-        .edit-input{width:100%;padding:8px;font-size:13px;border:1px solid #cbd5e0;border-radius:6px;outline:none;user-select:text!important;-webkit-user-select:text!important}
+        .edit-input{width:100%;padding:8px;font-size:13px;border:1px solid var(--input-border);background-color: var(--list-bg);color: var(--text-color);border-radius:6px;outline:none;user-select:text!important;-webkit-user-select:text!important}
         .word-info{flex:1;min-width:0;word-break:break-word}
-        .word-jp{font-weight:700;color:#333;font-size:14px}
-        .word-si{color:#666;font-size:12px;margin-top:1px;display:inline-block}
+        .word-jp{font-weight:700;color: var(--text-color);font-size:14px}
+        .word-si{color: var(--sub-text);font-size:12px;margin-top:1px;display:inline-block}
         .action-btns{display:flex;gap:4px;flex-shrink:0}
         .action-btns button{padding:6px 8px;font-size:11px;border-radius:6px;width:auto;flex:none;box-shadow:none}
         .edit-btn{background-color:#3182ce;color:#fff}
@@ -77,7 +135,7 @@
         .save-btn{background-color:#38a169;color:#fff}
         .cancel-btn{background-color:#718096;color:#fff}
         
-        .empty-text{text-align:center;color:#a0aec0;padding:12px;font-size:12px}
+        .empty-text{text-align:center;color: var(--sub-text);padding:12px;font-size:12px}
         
         /* Backup & Excel Row Stacked on Mobile */
         .backup-buttons{display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%}
@@ -85,16 +143,21 @@
         .backup-buttons button{font-size:11px;padding:10px 4px;height:auto}
         .excel-btn{background-color:#2f855a !important;font-weight:bold;width:100%}
         
-        .wrong-words-container{background:#fff;padding:12px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);width:100%;text-align:left;margin-top:15px}
-        .wrong-word-item{border-left:4px solid #ef4444;background-color:#fffafb}
+        .wrong-words-container{background: var(--container-bg);padding:12px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);width:100%;text-align:left;margin-top:15px;border: 1px solid var(--border-color);}
+        .wrong-word-item{border-left:4px solid #ef4444;background-color: var(--list-bg)}
         .wrong-word-item .word-jp{color:#c62828}
+        [data-theme="dark"] .wrong-word-item .word-jp {color: #e57373;}
         .wrong-counter{background-color:#ef4444;color:#fff;border-radius:12px;padding:1px 6px;font-size:11px;font-weight:700}
         .clear-wrong-btn{background-color:#ef4444!important;color:#fff!important;padding:4px 8px!important;font-size:11px!important;border-radius:6px!important;font-weight:400!important;width:auto!important;flex:none!important;box-shadow:none!important}
     </style>
 </head>
 <body>
 
-    <h1>ජපන් භාෂා සහකරු</h1>
+    <!-- Header & Dark Mode Button Wrapper -->
+    <div class="header-wrapper">
+        <h1>ජපන් භාෂා සහකරු</h1>
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+    </div>
     <p class="subtitle">Flashcards & Quiz App (Pro)</p>
 
     <div class="container">
@@ -115,7 +178,7 @@
             </div>
             <div class="controls">
                 <button onclick="prevCard()">◀ පසුපසට</button>
-                <span id="card-indicator" style="font-weight:bold;color:#555;font-size:13px">1 / 110</span>
+                <span id="card-indicator" style="font-weight:bold;font-size:13px">1 / 110</span>
                 <button onclick="nextCard()">ඉදිරියට ▶</button>
             </div>
             
@@ -201,7 +264,7 @@
             </div>
             <div id="quiz-wrong-section" class="wrong-words-container">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:2px solid #fed7d7;padding-bottom:4px">
-                    <h3 style="color:#c62828;font-size:13px;display:flex;align-items:center;gap:6px">
+                    <h3 style="font-size:13px;display:flex;align-items:center;gap:6px">
                         <span>වැරදුණු වචන ලැයිස්තුව</span>
                         <span id="wrong-count-badge" class="wrong-counter">0</span>
                     </h3>
@@ -247,7 +310,7 @@
             {term:"えび",definition:"ඉස්සා"}, {term:"おと",definition:"ශබ්දය"}, {term:"かお",definition:"මුහුණ"},
             {term:"きた",definition:"උතුර"}, {term:"くるま",definition:"කාර් (රථය)"}, {term:"けむり",definition:"දුම"},
             {term:"ここ",definition:"මෙතන / මෙතැන"}, {term:"さとう",definition:"සීනි"}, {term:"しお",definition:"ලුණු"},
-            {term:"すし",definition:"කෑමක්"}, {term:"せかい",definition:"ලෝකය"}, {term:"そら",definition:"අහස"},
+            {term:"すし",definition:"කෑමක්"}, {term:"せかい",definition:"ලෝකය"}, {term:"そら",definition:"アහස"},
             {term:"たけ",definition:"උණ ගස"}, {term:"ちかい",definition:"ළඟ"}, {term:"とけい",definition:"ඔරලෝසුව"},
             {term:"つま",definition:"බිරිඳ"}, {term:"なか",definition:"ඇතුළ"}, {term:"にし",definition:"බස්නාහිර"},
             {term:"ぬりえ",definition:"පාට කරන චිත්‍ර පොත"}, {term:"ねこ",definition:"පූසා"}, {term:"のど",definition:"උගුර"},
@@ -264,7 +327,7 @@
             {term:"ごみ",definition:"කුණු"}, {term:"ざっし",definition:"සඟරාව"}, {term:"じかん",definition:"වේලාව"},
             {term:"ずひょう",definition:"චිත්‍ර එකතුව (සිතියම්/ප්‍රස්තාර)"}, {term:"ぜろ",definition:"0 (බිංදුව)"}, {term:"ぞう",definition:"අලියා"},
             {term:"でんしゃ",definition:"දුම්රිය"}, {term:"ばしょ",definition:"ස්ථානය"}, {term:"びっくり",definition:"පුදුමය"},
-            {term:"べんり",definition:"පහසුයි /穩ප්‍රයෝජනවත්"}, {term:"ぼうし",definition:"තොප්පිය"}, {term:"かっぱつ",definition:"ක්‍රියාශීලී"},
+            {term:"べんり",definition:"පහසුයි / ප්‍රයෝජනවත්"}, {term:"ぼうし",definition:"තොප්පිය"}, {term:"かっぱつ",definition:"ක්‍රියාශීලී"},
             {term:"どろぼう",definition:"හොරා"}, {term:"こおり",definition:"අයිස්"}, {term:"おおい",definition:"බහුල"},
             {term:"おおさか",definition:"ප්‍රාන්තයක නමක් (Osaka)"}, {term:"おおきい",definition:"විශාලය"}, {term:"とお",definition:"ජපන් ගණනය වන 10 (දහය)"},
             {term:"は",definition:"දත"}, {term:"くちびる",definition:"තොල්"}, {term:"ほっぺた",definition:"කම්මුල"},
@@ -295,7 +358,34 @@
         
         let studyData=[],currentCardIndex=0,currentQuizIndex=0,score=0,canAnswer=!0,activeQuizData=[],wrongWords=[];
         
+        // --- Theme Switcher Logic ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+            updateThemeButton(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
+            updateThemeButton(newTheme);
+        }
+
+        function updateThemeButton(theme) {
+            const btn = document.getElementById("theme-btn");
+            if (theme === "dark") {
+                btn.innerHTML = "☀️ Light";
+            } else {
+                btn.innerHTML = "🌙 Dark";
+            }
+        }
+        // ----------------------------
+
         function loadData(){
+            initTheme(); // තේමාව මුලින්ම සක්‍රිය කිරීම
+            
             const savedData = localStorage.getItem("japanese_study_data");
             if(savedData){
                 studyData = JSON.parse(savedData);
@@ -422,11 +512,13 @@
                 score++;
                 e.style.backgroundColor="#c8e6c9";
                 e.style.borderColor="#81c784";
+                e.style.color="#2e7d32";
                 a.innerText="නිවැරදියි! 🎉";
                 a.className="feedback correct";
             }else{
                 e.style.backgroundColor="#ffcdd2";
                 e.style.borderColor="#e57373";
+                e.style.color="#c62828";
                 a.innerText=`වැරදියි! නිවැරදි පිළිතුර: ${n}`;
                 a.className="feedback wrong";
                 if(activeQuizData[currentQuizIndex] && !wrongWords.some(w=>w.term===activeQuizData[currentQuizIndex].term)){
