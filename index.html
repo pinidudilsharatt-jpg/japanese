@@ -2,734 +2,125 @@
 <html lang="si">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
     <title>Japanese Study Companion Pro</title>
-    <!-- Excel ෆයිල් කියවීම සඳහා වන පුස්තකාලය (xlsx library) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #f6f7fb;
-            --container-bg: #fff;
-            --text-color: #333;
-            --sub-text: #666;
-            --border-color: #e2e8f0;
-            --input-border: #cbd5e0;
-            --card-front-bg: #fff;
-            --card-front-text: #333;
-            --option-btn-bg: #f0f2ff;
-            --option-btn-border: #cfd5ff;
-            --list-bg: #f8fafc;
-        }
-
-        /* Dark Mode Colors */
-        [data-theme="dark"] {
-            --bg-color: #121214;
-            --container-bg: #1a1a1e;
-            --text-color: #e2e8f0;
-            --sub-text: #a0aec0;
-            --border-color: #2d3748;
-            --input-border: #4a5568;
-            --card-front-bg: #2d3748;
-            --card-front-text: #f7fafc;
-            --option-btn-bg: #222533;
-            --option-btn-border: #3b4266;
-            --list-bg: #1e222b;
-        }
-
-        *{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:0;user-select:none;-webkit-user-select:none;transition: background-color 0.3s, color 0.3s, border-color 0.3s;}
-        body{background-color: var(--bg-color);color: var(--text-color);display:flex;flex-direction:column;align-items:center;padding:12px;min-height:100vh}
-        
-        /* Top Header & Theme Switcher */
-        .header-wrapper {width:100%;max-width:450px;display:flex;justify-content:space-between;align-items:center;margin: 10px 0 15px 0;}
-        h1{color:#4257b2;font-size:20px;}
-        [data-theme="dark"] h1 {color: #798ee4;}
-        
-        /* Dark Mode Toggle Button */
-        .theme-toggle-btn {
-            background: var(--container-bg);
-            color: var(--text-color);
-            border: 2px solid var(--border-color);
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 600;
-            box-shadow: 0 2px 5px rgba(0,0,0,.05);
-            width: auto; flex: none;
-        }
-
-        p.subtitle{font-size:12px;color: var(--sub-text);margin-top: -10px; margin-bottom:15px; text-align: center; width: 100%; max-width: 450px;}
-        .container{width:100%;max-width:450px;display:flex;flex-direction:column;align-items:center}
-        
-        /* Navigation Buttons */
-        .nav-buttons{margin-bottom:15px;display:flex;gap:6px;width:100%}
-        button{flex:1;background-color:#4257b2;color:#fff;border:none;padding:12px 6px;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;text-align:center}
-        button:active{transform:scale(.97)}
-        button.secondary{background-color: var(--container-bg);color:#4257b2;border:2px solid #4257b2;padding:10px 6px}
-        [data-theme="dark"] button.secondary {color: #798ee4; border-color: #798ee4;}
-        button.admin-btn{background-color: var(--option-btn-bg);color:#4257b2;border:2px solid #4257b2;box-shadow:0 2px 8px rgba(66,87,178,.15)}
-        [data-theme="dark"] button.admin-btn {color: #798ee4; border-color: #798ee4;}
-        button.admin-btn:active{background-color:#4257b2;color:#fff}
-        
-        /* Views */
-        .admin-view,.card-view,.quiz-view,.intro-view{background: var(--container-bg);padding:15px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:340px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-bottom:15px;width:100%;border: 1px solid var(--border-color);}
-        .admin-view,.intro-view{justify-content:flex-start;align-items:stretch;text-align:left}
-        
-        /* Flashcards */
-        .flashcard{width:100%;height:200px;perspective:1000px;cursor:pointer}
-        .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s}
-        .flashcard.flipped .card-inner{transform:rotateY(180deg)}
-        .card-back,.card-front{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;font-size:24px;font-weight:600;border-radius:12px;border:2px solid var(--border-color);padding:12px;box-shadow:0 4px 6px rgba(0,0,0,.02);text-align:center;word-break:break-word}
-        .card-front{background-color: var(--card-front-bg);color: var(--card-front-text)}
-        .card-back{background-color:#4257b2;color:#fff;transform:rotateY(180deg);font-size:20px}
-        .controls{display:flex;justify-content:space-between;align-items:center;margin-top:15px;width:100%;gap:10px}
-        .controls button{flex:1;padding:10px;font-size:13px}
-        .hidden{display:none!important}
-        
-        /* Jikoshoukai Styles */
-        .jiko-btn{background-color:#ff9800;color:#fff;margin-top:15px;font-size:14px;padding:12px;box-shadow:0 4px 10px rgba(255,152,0,0.25);width:100%}
-        .jiko-btn:active{background-color:#e65100}
-        .intro-container{max-height:380px;overflow-y:auto;padding-right:2px;margin-bottom:15px}
-        .intro-card{background: var(--list-bg);border-left:4px solid #ff9800;padding:10px;margin-bottom:10px;border-radius:0 8px 8px 0;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
-        .intro-jp{font-size:15px;font-weight:700;color: var(--text-color);margin-bottom:3px;word-break:break-word}
-        .intro-reading{font-size:12px;color:#ff9800;font-style:italic;margin-bottom:4px}
-        [data-theme="dark"] .intro-reading {color: #ffb74d;}
-        .intro-si{font-size:12px;color: var(--sub-text);font-weight:500;line-height:1.3}
-        
-        /* Quiz */
-        .quiz-question{font-size:16px;font-weight:600;margin-bottom:15px;color: var(--text-color);line-height:1.4;text-align:center}
-        .options-grid{display:flex;flex-direction:column;gap:8px;width:100%}
-        .option-btn{background-color: var(--option-btn-bg);color: var(--text-color);border:2px solid var(--option-btn-border);padding:12px 10px;font-size:14px;font-weight:500;border-radius:10px;text-align:center;width:100%;box-shadow:none;cursor:pointer}
-        .feedback{font-size:15px;font-weight:700;margin-top:12px;min-height:20px;text-align:center}
-        .correct{color:#2e7d32}
-        [data-theme="dark"] .correct {color: #81c784;}
-        .wrong{color:#c62828}
-        [data-theme="dark"] .wrong {color: #e57373;}
-        .score-text{font-size:20px;font-weight:700;color:#2e7d32;margin-top:10px;text-align:center}
-        [data-theme="dark"] .score-text {color: #81c784;}
-        
-        /* Admin forms */
-        .form-group{margin-bottom:12px;width:100%}
-        .form-group label{display:block;font-size:12px;font-weight:700;margin-bottom:4px;color: var(--text-color)}
-        .form-group input{width:100%;padding:10px;font-size:14px;border:2px solid var(--input-border);background-color: var(--container-bg);color: var(--text-color);border-radius:8px;outline:none;user-select:text!important;-webkit-user-select:text!important}
-        .form-group input:focus{border-color:#4257b2}
-        .section-title{font-size:14px;font-weight:700;color:#4257b2;margin:12px 0 8px 0;border-bottom:2px solid var(--border-color);padding-bottom:4px}
-        [data-theme="dark"] .section-title {color: #798ee4;}
-        
-        /* Word List & Edit Mode Styles */
-        .word-list-container{max-height:240px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;padding:4px;background: var(--list-bg);width:100%}
-        .word-item{display:flex;flex-direction:column;padding:10px;border-bottom:1px solid var(--border-color);background: var(--container-bg);margin-bottom:4px;border-radius:6px;text-align:left}
-        .word-view-mode{display:flex;justify-content:space-between;align-items:center;width:100%;gap:10px}
-        .word-edit-mode{display:flex;flex-direction:column;gap:6px;width:100%}
-        .edit-input{width:100%;padding:8px;font-size:13px;border:1px solid var(--input-border);background-color: var(--list-bg);color: var(--text-color);border-radius:6px;outline:none;user-select:text!important;-webkit-user-select:text!important}
-        .word-info{flex:1;min-width:0;word-break:break-word}
-        .word-jp{font-weight:700;color: var(--text-color);font-size:14px}
-        .word-si{color: var(--sub-text);font-size:12px;margin-top:1px;display:inline-block}
-        .action-btns{display:flex;gap:4px;flex-shrink:0}
-        .action-btns button{padding:6px 8px;font-size:11px;border-radius:6px;width:auto;flex:none;box-shadow:none}
-        .edit-btn{background-color:#3182ce;color:#fff}
-        .delete-btn{background-color:#ef4444;color:#fff}
-        .save-btn{background-color:#38a169;color:#fff}
-        .cancel-btn{background-color:#718096;color:#fff}
-        
-        .empty-text{text-align:center;color: var(--sub-text);padding:12px;font-size:12px}
-        
-        /* Backup & Excel Row Stacked on Mobile */
-        .backup-buttons{display:flex;flex-direction:column;gap:8px;margin-top:12px;width:100%}
-        .backup-row{display:flex;gap:6px;width:100%}
-        .backup-buttons button{font-size:11px;padding:10px 4px;height:auto}
-        .excel-btn{background-color:#2f855a !important;font-weight:bold;width:100%}
-        
-        .wrong-words-container{background: var(--container-bg);padding:12px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);width:100%;text-align:left;margin-top:15px;border: 1px solid var(--border-color);}
-        .wrong-word-item{border-left:4px solid #ef4444;background-color: var(--list-bg)}
-        .wrong-word-item .word-jp{color:#c62828}
-        [data-theme="dark"] .wrong-word-item .word-jp {color: #e57373;}
-        .wrong-counter{background-color:#ef4444;color:#fff;border-radius:12px;padding:1px 6px;font-size:11px;font-weight:700}
-        .clear-wrong-btn{background-color:#ef4444!important;color:#fff!important;padding:4px 8px!important;font-size:11px!important;border-radius:6px!important;font-weight:400!important;width:auto!important;flex:none!important;box-shadow:none!important}
-    </style>
+    <style>*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:0;user-select:none;-webkit-user-select:none}body{background-color:#f6f7fb;color:#333;display:flex;flex-direction:column;align-items:center;padding:15px;transition:background-color .3s,color .3s}body.dark-mode{background-color:#121214;color:#e2e8f0}.header-area{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:450px;margin:15px 0 5px 0}h1{color:#4257b2;font-size:22px;text-align:left;flex:1}body.dark-mode h1{color:#9fa8da}button.dark-toggle-btn{background-color:#4a5568;color:#fff;border:none;padding:8px 12px;font-size:14px;border-radius:10px;cursor:pointer;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.1);flex:none}body.dark-mode button.dark-toggle-btn{background-color:#f6e05e;color:#1a202c}p.subtitle{font-size:13px;color:#666;margin-bottom:20px;width:100%;max-width:450px;text-align:left}.container{width:100%;max-width:450px;text-align:center}.nav-buttons{margin-bottom:20px;display:flex;flex-wrap:wrap;gap:6px}button{flex:1;background-color:#4257b2;color:#fff;border:none;padding:10px 4px;font-size:12px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.1);min-width:75px}button:active{transform:scale(.97)}button.secondary{background-color:#fff;color:#4257b2;border:2px solid #4257b2;padding:8px 4px}body.dark-mode button.secondary{background-color:#1e1e24;color:#9fa8da;border-color:#9fa8da}button.admin-btn{background-color:#eef2ff;color:#4257b2;border:2px solid #4257b2;box-shadow:0 2px 8px rgba(66,87,178,.15);flex:none;width:35px}body.dark-mode button.admin-btn{background-color:#1e1e24;color:#9fa8da;border-color:#9fa8da}button.intro-nav-btn{background-color:#ff9800;color:#fff}button.intro-nav-btn.secondary{background-color:#fff;color:#ff9800;border:2px solid #ff9800}body.dark-mode button.intro-nav-btn.secondary{background-color:#1e1e24;color:#ffb74d;border-color:#ffb74d}button.p-nav-btn{background-color:#e91e63;color:#fff}button.p-nav-btn.secondary{background-color:#fff;color:#e91e63;border:2px solid #e91e63}body.dark-mode button.p-nav-btn.secondary{background-color:#1e1e24;color:#f48fb1;border-color:#f48fb1}.intro-view{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:320px;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;margin-bottom:20px;width:100%;text-align:left}body.dark-mode .intro-view{background:#1e1e24;box-shadow:0 4px 15px rgba(0,0,0,.3)}.intro-card{background:linear-gradient(135deg,#fffcf7 0%,#fff8ee 100%);border:1px solid #ffe0b2;border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 2px 4px rgba(0,0,0,0.02)}body.dark-mode .intro-card{background:linear-gradient(135deg,#2d2115 0%,#281e12 100%);border-color:#e65100}.intro-jp{font-size:18px;font-weight:700;color:#e65100;line-height:1.4;user-select:text;-webkit-user-select:text}body.dark-mode .intro-jp{color:#ffb74d}.intro-proun{font-size:13px;color:#795548;margin:4px 0;font-style:italic}body.dark-mode .intro-proun{color:#bcaaa4}.intro-si{font-size:14px;color:#3e2723;font-weight:500}body.dark-mode .intro-si{color:#ffe0b2}button.time-nav-btn{background-color:#009688;color:#fff}button.time-nav-btn.secondary{background-color:#fff;color:#009688;border:2px solid #009688}body.dark-mode button.time-nav-btn.secondary{background-color:#1e1e24;color:#4db6ac;border-color:#4db6ac}.time-view{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:320px;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;margin-bottom:20px;width:100%;text-align:left}body.dark-mode .time-view{background:#1e1e24;box-shadow:0 4px 15px rgba(0,0,0,.3)}.time-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px}body.dark-mode .time-table{color:#e2e8f0}.time-table th,.time-table td{border:1px solid #e0f2f1;padding:8px;text-align:left}body.dark-mode .time-table th,body.dark-mode .time-table td{border-color:#334155}.time-table th{background-color:#009688;color:#fff;font-weight:bold}body.dark-mode .time-table th{background-color:#00796b}.time-table tr:nth-child(even){background-color:#f2fdfb}body.dark-mode .time-table tr:nth-child(even){background-color:#1a2421}.special-rule{background-color:#ffebee!important;color:#c62828;font-weight:bold}body.dark-mode .special-rule{background-color:#3a1c1c!important;color:#ef4444}.admin-view,.card-view,.quiz-view{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);min-height:320px;display:flex;flex-direction:column;justify-content:center;align-items:center;margin-bottom:20px;width:100%}body.dark-mode .admin-view,body.dark-mode .card-view,body.dark-mode .quiz-view{background:#1e1e24;box-shadow:0 4px 15px rgba(0,0,0,.3)}.admin-view{justify-content:flex-start;align-items:stretch;text-align:left}.flashcard{width:100%;height:220px;perspective:1000px;cursor:pointer}.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s}.flashcard.flipped .card-inner{transform:rotateY(180deg)}.card-back,.card-front{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;font-size:28px;font-weight:600;border-radius:12px;border:2px solid #e2e8f0;padding:15px;box-shadow:0 4px 6px rgba(0,0,0,.02);text-align:center}body.dark-mode .card-front,body.dark-mode .card-back,body.dark-mode .card-inner{border-color:#334155}.card-front{background-color:#fff;color:#333}body.dark-mode .card-front{background-color:#2d2d34;color:#e2e8f0}.card-back{background-color:#4257b2;color:#fff;transform:rotateY(180deg);font-size:22px}body.dark-mode .card-back{background-color:#31408f}.controls{display:flex;justify-content:space-between;align-items:center;margin-top:20px;width:100%}.controls button{flex:none;width:95px;padding:10px}.hidden{display:none!important}.quiz-question{font-size:18px;font-weight:600;margin-bottom:20px;color:#2d3748;line-height:1.4;text-align:center}body.dark-mode .quiz-question{color:#e2e8f0}.options-grid{display:flex;flex-direction:column;gap:10px;width:100%}.option-btn{background-color:#f0f2ff;color:#333;border:2px solid #cfd5ff;padding:14px;font-size:15px;font-weight:500;border-radius:10px;text-align:center;width:100%;box-shadow:none;cursor:pointer;transition:background-color .2s}body.dark-mode .option-btn{background-color:#2d2d34;color:#e2e8f0;border-color:#4a5568}.feedback{font-size:16px;font-weight:700;margin-top:15px;min-height:22px;text-align:center}.correct{color:#2e7d32}body.dark-mode .correct{color:#4caf50}.wrong{color:#c62828}body.dark-mode .wrong{color:#f44336}.score-text{font-size:22px;font-weight:700;color:#2e7d32;margin-top:10px;text-align:center}body.dark-mode .score-text{color:#4caf50}.form-group{margin-bottom:15px;width:100%}.form-group label{display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:#4a5568}body.dark-mode .form-group label{color:#a0aec0}.form-group input{width:100%;padding:12px;font-size:15px;border:2px solid #cbd5e0;border-radius:8px;outline:none;user-select:text!important;-webkit-user-select:text!important}body.dark-mode .form-group input{background-color:#2d2d34;border-color:#4a5568;color:#fff}.form-group input:focus{border-color:#4257b2}body.dark-mode .form-group input:focus{border-color:#9fa8da}.section-title{font-size:16px;font-weight:700;color:#4257b2;margin:15px 0 10px 0;border-bottom:2px solid #e2e8f0;padding-bottom:5px}body.dark-mode .section-title{color:#9fa8da;border-color:#334155}.word-list-container{max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:5px;background:#f8fafc}body.dark-mode .word-list-container{background:#121214;border-color:#334155}.word-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #e2e8f0;font-size:14px;background:#fff;margin-bottom:4px;border-radius:6px;text-align:left}body.dark-mode .word-item{background:#2d2d34;border-color:#222;color:#fff}.word-info{flex:1;padding-right:10px}.word-jp{font-weight:700;color:#333;font-size:15px}body.dark-mode .word-jp{color:#fff}.word-si{color:#666;font-size:13px;margin-top:2px;display:inline-block}body.dark-mode .word-si{color:#a0aec0}.delete-btn{background-color:#ef4444;color:#fff;padding:6px 12px;font-size:11px;border-radius:6px;width:auto;flex:none;box-shadow:none}.empty-text{text-align:center;color:#a0aec0;padding:15px;font-size:13px}.backup-buttons{display:flex;gap:10px;margin-top:15px}.backup-buttons button{background-color:#718096;font-size:12px;padding:8px}.wrong-words-container{background:#fff;padding:15px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.05);width:100%;text-align:left;margin-top:20px}body.dark-mode .wrong-words-container{background:#2d2d34;box-shadow:0 4px 15px rgba(0,0,0,.3)}.wrong-counter{background-color:#ef4444;color:#fff;border-radius:12px;padding:2px 8px;font-size:12px;font-weight:700}.clear-wrong-btn{background-color:#ef4444!important;color:#fff!important;padding:5px 10px!important;font-size:11px!important;border-radius:6px!important;font-weight:400!important;width:auto!important;flex:none!important;box-shadow:none!important}</style>
 </head>
 <body>
-
-    <!-- Header & Dark Mode Button Wrapper -->
-    <div class="header-wrapper">
+    <div class="header-area">
         <h1>ජපන් භාෂා සහකරු</h1>
-        <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <button id="dark-toggle-btn" class="dark-toggle-btn" onclick="toggleDarkMode()">🌙</button>
     </div>
     <p class="subtitle">Flashcards & Quiz App (Pro)</p>
-
     <div class="container">
-        <!-- Navigation Buttons -->
         <div class="nav-buttons">
             <button id="show-cards-btn" onclick="switchView('cards')">Flashcards</button>
-            <button id="show-quiz-btn" class="secondary" onclick="switchView('quiz')">Start Quiz</button>
-            <button id="show-admin-btn" class="admin-btn" onclick="switchView('admin')">ඇතුළත් කරන්න ➕</button>
+            <button id="show-quiz-btn" class="secondary" onclick="switchView('quiz')">Vocab Quiz</button>
+            <button id="show-particles-btn" class="secondary p-nav-btn" onclick="switchView('particles')">Particles</button>
+            <button id="show-intro-btn" class="secondary intro-nav-btn" onclick="switchView('intro')">👤 じこ</button>
+            <button id="show-time-btn" class="secondary time-nav-btn" onclick="switchView('time')">⏰ じかん</button>
+            <button id="show-admin-btn" class="admin-btn" onclick="switchView('admin')">➕</button>
         </div>
-
-        <!-- Flashcards Section -->
         <div id="flashcard-section" class="card-view">
-            <div class="flashcard" onclick="toggleFlip()">
-                <div class="card-inner">
-                    <div class="card-front" id="front-text">Japanese Word</div>
-                    <div class="card-back" id="back-text">සිංහල තේරුම</div>
-                </div>
-            </div>
-            <div class="controls">
-                <button onclick="prevCard()">◀ පසුපසට</button>
-                <span id="card-indicator" style="font-weight:bold;font-size:13px">1 / 110</span>
-                <button onclick="nextCard()">ඉදිරියට ▶</button>
-            </div>
-            
-            <!-- Jikoshoukai බොත්තම -->
-            <button class="jiko-btn" onclick="switchView('intro')">じこしょうかい (ස්වයං හැඳින්වීම) 👤</button>
+            <div class="flashcard" onclick="toggleFlip()"><div class="card-inner"><div class="card-front" id="front-text">Japanese Word</div><div class="card-back" id="back-text">සිංහල තේරුම</div></div></div>
+            <div class="controls"><button onclick="prevCard()">◀ පසුපසට</button><span id="card-indicator" style="font-weight:bold;color:#555">1 / 110</span><button onclick="nextCard()">ඉදිරියට ▶</button></div>
         </div>
-
-        <!-- Jikoshoukai (Self Introduction) Section -->
+        <div id="particles-section" class="quiz-view hidden">
+            <div id="p-quiz-game" style="width:100%">
+                <div class="quiz-question" id="p-quiz-question-text">ප්‍රශ්නය මතු වේ...</div>
+                <div style="font-size:13px;color:#666;margin-bottom:15px;text-align:center;" id="p-quiz-hint">තේරුම: - </div>
+                <div class="options-grid" id="p-options-container"></div>
+                <div id="p-quiz-feedback" class="feedback"></div>
+            </div>
+            <div id="p-quiz-result" class="hidden" style="width:100%">
+                <p class="quiz-question">Particles Quiz එක අවසන්! 🏆</p>
+                <p id="p-score-display" class="score-text">ලකුණු: 0/10</p>
+                <button onclick="startParticlesQuiz()" style="background-color:#e91e63;margin-top:20px;width:100%">නැවත සෙල්ලම් කරන්න</button>
+            </div>
+        </div>
         <div id="intro-section" class="intro-view hidden">
-            <h3 style="font-size:15px;margin-bottom:12px;color:#ff9800;text-align:center;font-weight:bold;border-bottom:2px solid #ffe0b2;padding-bottom:4px">じこしょうかい (ස්වයං හැඳින්වීම)</h3>
-            
-            <div class="intro-container">
-                <div class="intro-card">
-                    <div class="intro-jp">はじめまして।</div>
-                    <div class="intro-reading">(හජිමෙමෂිතෙ)</div>
-                    <div class="intro-si">තේරුම: ඔබව හමුවීම සතුටක්. / පළමු වතාවටයි හමුවෙන්නේ.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">おはようございます।</div>
-                    <div class="intro-reading">(ඔහයෝ ගොසයිමසු)</div>
-                    <div class="intro-si">තේරුම: සුභ උදෑසනක් වේවා.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは ピニドゥ ともうします।</div>
-                    <div class="intro-reading">(වතෂි වා පිනිඳු තො මෝෂිමසු)</div>
-                    <div class="intro-si">තේරුම: මගේ නම පිනිඳු වේ. (ගෞරවාන්විත හැඳින්වීමක්)</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは 二十一歳 (にじゅういっさい) です।</div>
-                    <div class="intro-reading">(වතෂิ වා නිජූ ඉස්සයි දෙසූ)</div>
-                    <div class="intro-si">තේරුම: මට වයස අවුරුදු 21 කි.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは ラトゥマラナ から きました।</div>
-                    <div class="intro-reading">(වතෂิ වා රත්මලාන කර කිමෂිතා)</div>
-                    <div class="intro-si">තේරුම: මම පැමිණියේ රත්මලානෙන් ය.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは ラトゥマラナ に すんでいます।</div>
-                    <div class="intro-reading">(වතෂิ වා රත්මලාන නි සුන්දෙ ඉමසු)</div>
-                    <div class="intro-si">තේරුම: මම පදිංචි වී සිටින්නේ රත්මලානේ ය.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしの かぞくは 二人 (ふたり) です। ちちと わたしです।</div>
-                    <div class="intro-reading">(වතෂිනො කසොකු වා ෆුතාරි දෙසූ. චිචි තො වතෂි දෙසූ)</div>
-                    <div class="intro-si">තේරුම: මගේ පවුලේ සාමාජිකයන් දෙදෙනෙකි. ඒ මගේ තාත්තා සහ මම ය.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしの しゅみは テレビを みることです।</div>
-                    <div class="intro-reading">(වතෂිනො ශුමි වා තෙරෙබි ඔ මිරු කොතො දෙසූ)</div>
-                    <div class="intro-si">තේරුම: මගේ විනෝදාංශය රූපවාහිනිය නැරඹීමයි.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは 二級 (にきゅう) / Ｎ５しけんに ごうかくしています।</div>
-                    <div class="intro-reading">(වතෂิ වා එන් ෆයිව් ශිකෙන් නි ගෝකකු ශිතෙ ඉමසු)</div>
-                    <div class="intro-si">තේරුම: මම JLPT N5 විභාගය සමත් වී සිටිමි.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">わたしは Ｎ４を もうしこんでいます।</div>
-                    <div class="intro-reading">(වතෂิ වා එන් ෆෝ ඔ මෝෂිකොන්දෙ ඉමසු)</div>
-                    <div class="intro-si">තේරුම: මම JLPT N4 විභාගය සඳහා අයදුම් කර (ලියාපදිංචි වී) ඇත.</div>
-                </div>
-                <div class="intro-card">
-                    <div class="intro-jp">どうぞ よろしくおねがいします।</div>
-                    <div class="intro-reading">(දෝසො යොරොෂිකු ඔනෙගයිෂිමසු)</div>
-                    <div class="intro-si">තේරුම: කරුණාවෙන් සලකන්න (අවසානයට පවසන ආචාරශීලී වැකිය).</div>
-                </div>
+            <h3 style="font-size:17px;margin-bottom:15px;color:#e65100;text-align:center;font-weight:bold;border-bottom:2px dashed #ffe0b2;padding-bottom:8px">じこしょうかい (ස්වයං හැඳින්වීම)</h3>
+            <div class="word-list-container" style="max-height:420px;background:transparent;border:none;padding:0">
+                <div class="intro-card"><div class="intro-jp">はじめまして。</div><div class="intro-proun">(හජිමෙමෂිතෙ)</div><div class="intro-si">තේරුම: ඔබව හමුවීම සතුටක්.</div></div>
+                <div class="intro-card"><div class="intro-jp">おはようございます。</div><div class="intro-proun">(ඔහයෝ ගොසයිමසු)</div><div class="intro-si">තේරුම: සුභ උදෑසනක් වේවා.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは ピニドゥ ともうします。</div><div class="intro-proun">(වතෂิ වා පිනිඳු තො මෝෂිමසු)</div><div class="intro-si">තේරුම: මගේ නම පිනිඳු වේ.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは 二いたし歳 (にじゅういっさい) です。</div><div class="intro-proun">(වතෂิ වා නිජූ ඉස්සයි දෙසූ)</div><div class="intro-si">තේරුම: මට වයස අවුරුදු 21 කි.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは ラトゥマラナ から きました。</div><div class="intro-proun">(වතෂิ වා රත්මලාන කර කිමෂිතා)</div><div class="intro-si">තේරුම: මම පැමිණියේ රත්මලානෙන් ය.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは ラトゥマラナ に すんでいます。</div><div class="intro-proun">(වතෂิ වා රත්මලාන නි සුන්දෙ ඉමසු)</div><div class="intro-si">තේරුම: මම පදිංචි වී සිටින්නේ රත්මලානේ ය.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしの かぞくは 二人 (ふたり) です。ちちと わたしです。</div><div class="intro-proun">(වතෂිනො කසොකු වා ෆුතාරි දෙසූ.)</div><div class="intro-si">තේරුම: මගේ පවුලේ සාමාජිකයන් දෙදෙනෙකි. තාත්තා සහ මම ය.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしの しゅみは テレビを みることです。</div><div class="intro-proun">(වතෂිනො ශුමි වා තෙරෙබි ඔ මිරු කොතො දෙසූ)</div><div class="intro-si">තේරුම: මගේ විනෝදාංශය රූපවාහිනිය නැرඹීමයි.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは Ｎ５しけんに ごうかくしています。</div><div class="intro-proun">(වතෂิ වා එන් ෆයිව් ශිකෙන් නි ගෝකකු...)</div><div class="intro-si">තේරුම: මම JLPT N5 විභාගය සමත් වී සිටිමි.</div></div>
+                <div class="intro-card"><div class="intro-jp">わたしは Ｎ４を もうしこんでいます。</div><div class="intro-proun">(වතෂิ වා එන් ෆෝ ඔ මෝෂිකොන්දෙ ඉමසු)</div><div class="intro-si">තේරුම: මම JLPT N4 විභාගය සඳහා අයදුම් කර ඇත.</div></div>
+                <div class="intro-card" style="margin-bottom:0"><div class="intro-jp">どうぞ よろしくおねがいします。</div><div class="intro-proun">(දෝසො යොරොෂිකු ඔනෙගයිෂිමසු)</div><div class="intro-si">තේරුම: කරුණාවෙන් සලකන්න.</div></div>
             </div>
-            <button onclick="switchView('cards')" style="background-color:#718096; width:100%">◀ ආපසු යන්න (Back)</button>
         </div>
-
-        <!-- Quiz Section -->
+        <div id="time-section" class="time-view hidden">
+            <div style="display:flex;gap:10px;margin-bottom:15px"><button id="time-learn-btn" onclick="toggleTimeSubView('learn')" style="background-color:#009688">පාඩම් මාලාව 📖</button><button id="time-quiz-btn" onclick="toggleTimeSubView('quiz')" class="secondary" style="border-color:#009688;color:#009688">Time Quiz 📝</button></div>
+            <div id="time-learn-content">
+                <h4 style="color:#009688;margin-bottom:8px;font-size:15px">⏰ පැය කියන ක්‍රමය (〜時 - じ)</h4>
+                <table class="time-table">
+                    <tr><th>පැය</th><th>ජපන් බසින්</th><th>සිංහල ශබ්දය</th></tr><tr><td>1:00</td><td>いちじ</td><td>ඉචි ජි</td></tr><tr><td>2:00</td><td>にじ</td><td>නි ජි</td></tr><tr><td>3:00</td><td>さんじ</td><td>සන් ජි</td></tr><tr class="special-rule"><td>4:00 ⚠</td><td>よじ</td><td>යො ජි</td></tr><tr><td>5:00</td><td>ごじ</td><td>ගො ජි</td></tr><tr><td>6:00</td><td>ろくじ</td><td>රොකු ජι</td></tr><tr class="special-rule"><td>7:00 ⚠</td><td>しちじ</td><td>ෂිචි ජි</td></tr><tr><td>8:00</td><td>はちじ</td><td>හචි ජි</td></tr><tr class="special-rule"><td>9:00 ⚠</td><td>くじ</td><td>කු ජි</td></tr><tr><td>10:00</td><td>じゅうじ</td><td>ජූ ජි</td></tr><tr><td>11:00</td><td>じゅういちじ</td><td>ජූ ඉචි ජි</td></tr><tr><td>12:00</td><td>じゅうにじ</td><td>ජූ නි ජි</td></tr><tr style="font-weight:bold;background:#e0f2f1;color:#333"><td colspan="3">💡 AM = ごぜん | PM = ごご</td></tr>
+                </table>
+                <h4 style="color:#009688;margin-bottom:8px;font-size:15px">⏱ මිනිත්තු කියන ක්‍රමය (〜分 - ふん/ぷん)</h4>
+                <table class="time-table">
+                    <tr><th>මිනිත්තු</th><th>ජපන් බසින්</th><th>සිංහල ශබ්දය</th></tr><tr class="special-rule"><td>1 min</td><td>いっぷん</td><td>ඉප්පුන්</td></tr><tr><td>2 min</td><td>にふん</td><td>නිෆුන්</td></tr><tr class="special-rule"><td>3 min</td><td>さんぷん</td><td>සම්පුන්</td></tr><tr><td>4 min</td><td>よんふん</td><td>යොන්ෆුන්</td></tr><tr><td>5 min</td><td>ごふん</td><td>ගොෆුන්</td></tr><tr class="special-rule"><td>6 min</td><td>ろっぷん</td><td>රොප්පුන්</td></tr><tr><td>7 min</td><td>ななふん</td><td>නනාෆුන්</td></tr><tr class="special-rule"><td>8 min</td><td>はっぷん</td><td>හප්පුන්</td></tr><tr><td>9 min</td><td>きゅうふん</td><td>කියූෆුන්</td></tr><tr class="special-rule"><td>10 min</td><td>じゅっぷん</td><td>ජුප්පුන්</td></tr><tr style="font-weight:bold;background:#e0f2f1;color:#333"><td colspan="3">💡 විනාඩි 30 = はん (හන්)</td></tr>
+                </table>
+            </div>
+            <div id="time-quiz-content" class="hidden">
+                <div id="t-quiz-game"><div class="quiz-question" id="t-quiz-question-text">ප්‍රශ්නය මතු වේ...</div><div class="options-grid" id="t-options-container"></div><div id="t-quiz-feedback" class="feedback"></div></div>
+                <div id="t-quiz-result" class="hidden"><p class="quiz-question">Time Quiz එක අවසන්! 🏆</p><p id="t-score-display" class="score-text">ලකුණු: 0/10</p><button onclick="startTimeQuiz()" style="background-color:#009688;margin-top:20px;width:100%">නැවත සෙල්ලම් කරන්න</button></div>
+            </div>
+        </div>
         <div id="quiz-section" class="quiz-view hidden">
-            <div id="quiz-game" style="width:100%">
-                <div class="quiz-question" id="quiz-question-text">ප්‍රශ්නය මෙතනට...</div>
-                <div class="options-grid" id="options-container"></div>
-                <div id="quiz-feedback" class="feedback"></div>
-            </div>
-            <div id="quiz-result" class="hidden" style="width:100%">
-                <p class="quiz-question">ප්‍රශ්නාවලිය අවසන්! 🎉</p>
-                <p id="score-display" class="score-text">ලකුණු: 0/0</p>
-                <button onclick="startQuiz()" style="margin-top:20px;width:100%">නැවත උත්සාහ කරන්න</button>
-            </div>
+            <div id="quiz-game" style="width:100%"><div class="quiz-question" id="quiz-question-text">ප්‍රශ්නය මෙතනට...</div><div class="options-grid" id="options-container"></div><div id="quiz-feedback" class="feedback"></div></div>
+            <div id="quiz-result" class="hidden" style="width:100%"><p class="quiz-question">ප්‍රශ්නාවලිය අවසන්! 🎉</p><p id="score-display" class="score-text">ලකුණු: 0/0</p><button onclick="startQuiz()" style="margin-top:25px;width:160px;display:inline-block">නැවත උත්සාහ කරන්න</button></div>
             <div id="quiz-wrong-section" class="wrong-words-container">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:2px solid #fed7d7;padding-bottom:4px">
-                    <h3 style="font-size:13px;display:flex;align-items:center;gap:6px">
-                        <span>වැරදුණු වචන ලැයිස්තුව</span>
-                        <span id="wrong-count-badge" class="wrong-counter">0</span>
-                    </h3>
-                    <button class="clear-wrong-btn" onclick="clearWrongWordsList()">මකන්න 🗑️</button>
-                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #fed7d7;padding-bottom:5px"><h3 style="color:#c62828;font-size:14px">වැරදුණු වචන ලැයිස්තුව <span id="wrong-count-badge" class="wrong-counter">0</span></h3><button class="clear-wrong-btn" onclick="clearWrongWordsList()">මකන්න 🗑️</button></div>
                 <div id="wrong-words-list" class="word-list-container" style="max-height:150px">තවම වැරදුණු වචන නැත.</div>
             </div>
         </div>
-
-        <!-- Admin Section -->
         <div id="admin-section" class="admin-view hidden">
-            <h3 style="font-size:14px;margin-bottom:12px;color:#4257b2;text-align:center;font-weight:bold">නව වචන ඇතුළත් කිරීමේ පුවරුව</h3>
-            <div class="form-group">
-                <label>ජපන් වචනය (හිරගනා / කටකනා / කන්ජි):</label>
-                <input type="text" id="input-term" placeholder="උදා: ありがとう">
-            </div>
-            <div class="form-group">
-                <label>සිංහල තේරුම:</label>
-                <input type="text" id="input-definition" placeholder="උදා: ස්තූතියි">
-            </div>
-            <button onclick="addNewWord()" style="background-color:#4257b2;margin-bottom:12px;width:100%">වචනය සුරකින්න (Save)</button>
-            
+            <h3 style="font-size:15px;margin-bottom:15px;color:#4257b2;text-align:center;font-weight:bold">නව වචන ඇතුළත් කිරීමේ පුවරුව</h3>
+            <div class="form-group"><label>ජපන් වචනය:</label><input type="text" id="input-term" placeholder="උදා: ありがとう"></div>
+            <div class="form-group"><label>සිංහල තේරුම:</label><input type="text" id="input-definition" placeholder="උදා: ස්තූතියි"></div>
+            <button onclick="addNewWord()" style="background-color:#4257b2;margin-bottom:15px;width:100%">වචනය සුරකින්න</button>
             <div class="section-title">දැනට පවතින වචන ලැයිස්තුව (<span id="total-words-count">0</span>)</div>
             <div class="word-list-container" id="word-list-container"></div>
-            
-            <!-- Backup සහ Excel Import බොත්තම් -->
-            <div class="backup-buttons">
-                <div class="backup-row">
-                    <button onclick="exportWords()">Export JSON</button>
-                    <button onclick="document.getElementById('import-file').click()">Import JSON</button>
-                    <input type="file" id="import-file" class="hidden" accept=".json" onchange="importWords(event)">
-                </div>
-                
-                <button class="excel-btn" onclick="document.getElementById('import-excel-file').click()">Excel ශීට් එකකින් Import කරන්න (XLSX/CSV) 📊</button>
-                <input type="file" id="import-excel-file" class="hidden" accept=".xlsx, .xls, .csv" onchange="importExcelWords(event)">
-            </div>
+            <div class="backup-buttons"><button onclick="exportWords()">Backup (Export)</button><button onclick="document.getElementById('import-file').click()">Restore (Import)</button><input type="file" id="import-file" class="hidden" accept=".json" onchange="importWords(event)"></div>
         </div>
     </div>
-
     <script>
-        const defaultStudyData=[
-            {term:"あさ",definition:"උදේ"}, {term:"うえ",definition:"උඩ"}, {term:"いえ",definition:"ගෙදර / නිවස"},
-            {term:"えび",definition:"ඉස්සා"}, {term:"おと",definition:"ශබ්දය"}, {term:"かお",definition:"මුහුණ"},
-            {term:"きた",definition:"උතුර"}, {term:"くるま",definition:"කාර් (රථය)"}, {term:"けむり",definition:"දුම"},
-            {term:"ここ",definition:"මෙතන / මෙතැන"}, {term:"さとう",definition:"සීනි"}, {term:"しお",definition:"ලුණු"},
-            {term:"すし",definition:"කෑමක්"}, {term:"せかい",definition:"ලෝකය"}, {term:"そら",definition:"アහස"},
-            {term:"たけ",definition:"උණ ගස"}, {term:"ちかい",definition:"ළඟ"}, {term:"とけい",definition:"ඔරලෝසුව"},
-            {term:"つま",definition:"බිරිඳ"}, {term:"なか",definition:"ඇතුළ"}, {term:"にし",definition:"බස්නාහිර"},
-            {term:"ぬりえ",definition:"පාට කරන චිත්‍ර පොත"}, {term:"ねこ",definition:"පූසා"}, {term:"のど",definition:"උගුර"},
-            {term:"はし",definition:"කෑම කන කූරු / පාලම"}, {term:"ひる",definition:"දවල්"}, {term:"ふね",definition:"නැව"},
-            {term:"へび",definition:"සර්පයා"}, {term:"ほし",definition:"තරුව"}, {term:"まくら",definition:"කොට්ටය"},
-            {term:"みみ",definition:"කන"}, {term:"むし",definition:"කෘමි සතුන්"}, {term:"め",definition:"ඇස"},
-            {term:"もり",definition:"කැලය"}, {term:"やま",definition:"කන්ද"}, {term:"ゆき",definition:"හිම"},
-            {term:"よる",definition:"රෑ"}, {term:"あお",definition:"නිල් පාට"}, {term:"あい",definition:"ආදරය"},
-            {term:"えき",definition:"දුම්රිය නැවතුම් පොළ"}, {term:"かさ",definition:"කුඩය"}, {term:"きそく",definition:"නීති රීති"},
-            {term:"あし",definition:"කකුල"}, {term:"らくだ",definition:"ඔටුවා"}, {term:"りんご",definition:"ඇපල්"},
-            {term:"るす",definition:"නොමැතිවීම"}, {term:"れきし",definition:"ඉතිහාසය"}, {term:"ろうか",definition:"කොරිඩෝව"},
-            {term:"わに",definition:"කිඹුලා"}, {term:"みかん",definition:"දොඩම්"}, {term:"がっこう",definition:"පාසල"},
-            {term:"ぎんこう",definition:"බැංකුව"}, {term:"くだもの",definition:"පළතුරු"}, {term:"げたばこ",definition:"සපත්තු රාක්කය"},
-            {term:"ごみ",definition:"කුණු"}, {term:"ざっし",definition:"සඟරාව"}, {term:"じかん",definition:"වේලාව"},
-            {term:"ずひょう",definition:"චිත්‍ර එකතුව (සිතියම්/ප්‍රස්තාර)"}, {term:"ぜろ",definition:"0 (බිංදුව)"}, {term:"ぞう",definition:"අලියා"},
-            {term:"でんしゃ",definition:"දුම්රිය"}, {term:"ばしょ",definition:"ස්ථානය"}, {term:"びっくり",definition:"පුදුමය"},
-            {term:"べんり",definition:"පහසුයි / ප්‍රයෝජනවත්"}, {term:"ぼうし",definition:"තොප්පිය"}, {term:"かっぱつ",definition:"ක්‍රියාශීලී"},
-            {term:"どろぼう",definition:"හොරා"}, {term:"こおり",definition:"අයිස්"}, {term:"おおい",definition:"බහුල"},
-            {term:"おおさか",definition:"ප්‍රාන්තයක නමක් (Osaka)"}, {term:"おおきい",definition:"විශාලය"}, {term:"とお",definition:"ජපන් ගණනය වන 10 (දහය)"},
-            {term:"は",definition:"දත"}, {term:"くちびる",definition:"තොල්"}, {term:"ほっぺた",definition:"කම්මුල"},
-            {term:"くび",definition:"බෙල්ල"}, {term:"ひざ",definition:"දණහිස"}, {term:"せなか",definition:"පිට"},
-            {term:"むね",definition:"පපුව"}, {term:"おなか",definition:"බඩ"}, {term:"うて",definition:"අත / බාහුව"},
-            {term:"ふともも",definition:"කලවා"}, {term:"ひじ",definition:"වැලමිත"}, {term:"かかと",definition:"විලුඹ"},
-            {term:"あしくび",definition:"වළලු කර"}, {term:"あしのうら",definition:"යටි පතුල"}, {term:"ゆび",definition:"අතේ ඇඟිලි"},
-            {term:"ゆびわ",definition:"ඇඟිලි මුදුව"}, {term:"つめ",definition:"නියපොතු"}, {term:"へそ",definition:"නාභිය"},
-            {term:"つまずき",definition:"කකුලේ ඇඟිලි"}, {term:"て",definition:"අත"}, {term:"てくび",definition:"මැණික් කටුව"},
-            {term:"おしり",definition:"පස්ස / නිතඹ"}, {term:"からだ",definition:"ශරීරය"}, {term:"からだのぶぶん",definition:"ශරීර කොටස්"},
-            {term:"くち",definition:"කට"}, {term:"かみのけ",definition:"කොණ්ඩය / කෙස්"}, {term:"にっき",definition:"දිනපොත"},
-            {term:"せっけん",definition:"සබන්"}, {term:"けっこん",definition:"විවාහය"}, {term:"さっき",definition:"කලින්"},
-            {term:"きって",definition:"මුද්දර"}, {term:"とおる",definition:"පසු කරගෙන යනවා"}, {term:"あいます",definition:"හමු වෙනවා"},
-            {term:"あいします",definition:"ආදරය කරනවා"}, {term:"あびます",definition:"නානවා"}, {term:"あそびます",definition:"සෙල්ලම් කරනවා"},
-            {term:"あらいます",definition:"සෝදනවා"}, {term:"あけます",definition:"අරිනවා"}, {term:"あんないします",definition:"මඟ පෙන්වනවා"},
-            {term:"いいます",definition:"කියනවා"}, {term:"あるきます",definition:"ඇවිදිනවා"}, {term:"よみます",definition:"කියවනවා"},
-            {term:"います",definition:"ඉන්නවා"}, {term:"いります",definition:"දානවා"}, {term:"うります",definition:"විකුණනවා"},
-            {term:"うけます",definition:"පෙනී සිටිනවා"}, {term:"うんどうします",definition:"ව්‍යායාම කරනවා"}, {term:"うたいます",definition:"ගායනා කරනවා"},
-            {term:"おきます",definition:"අවදිවෙනවා"}, {term:"えらびます",definition:"තෝරාගන්නවා"}, {term:"おります",definition:"බහිනවා"},
-            {term:"おしえます",definition:"උගන්වනවා / කියලා දෙනවා"}, {term:"おどります",definition:"නටනවා"}, {term:"おちます",definition:"වැටෙනවා / අසමත් වෙනවා"},
-            {term:"おどろきます",definition:"පුදුම වෙනවා"}, {term:"およぎます",definition:"පීනනවා"}, {term:"かけます",definition:"එල්ලනවා / අඳිනවා (කණ්ණාඩි වැනි)"},
-            {term:"かぶります",definition:"තොප්පිය පළඳිනවා"}, {term:"かえります",definition:"ආපසු යනවා / ආපසු එනවා"}, {term:"かちます",definition:"දිනනවා"},
-            {term:"かんがえます",definition:"කල්පනා කරනවා"}, {term:"かきます",definition:"ලියනවා"}, {term:"かいます",definition:"මිලදී ගන්නවා"},
-            {term:"かまえます",definition:"තබනවා / සූදානම් කරනවා"}, {term:"ききます",definition:"අහනවා"}, {term:"きます",definition:"අඳිනවා (ඇඳුම්) / එනවා"},
-            {term:"きこえます",definition:"ඇහෙනවා"}, {term:"まわります",definition:"කැරකෙනවා"}, {term:"くらべます",definition:"සසඳනවා"},
-            {term:"くらします",definition:"ජීවත් වෙනවා"}
-        ];
-        
-        let studyData=[],currentCardIndex=0,currentQuizIndex=0,score=0,canAnswer=!0,activeQuizData=[],wrongWords=[];
-        
-        // --- Theme Switcher Logic ---
-        function initTheme() {
-            const savedTheme = localStorage.getItem("theme") || "light";
-            document.documentElement.setAttribute("data-theme", savedTheme);
-            updateThemeButton(savedTheme);
-        }
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute("data-theme");
-            const newTheme = currentTheme === "dark" ? "light" : "dark";
-            document.documentElement.setAttribute("data-theme", newTheme);
-            localStorage.setItem("theme", newTheme);
-            updateThemeButton(newTheme);
-        }
-
-        function updateThemeButton(theme) {
-            const btn = document.getElementById("theme-btn");
-            if (theme === "dark") {
-                btn.innerHTML = "☀️ Light";
-            } else {
-                btn.innerHTML = "🌙 Dark";
-            }
-        }
-        // ----------------------------
-
-        function loadData(){
-            initTheme(); // තේමාව මුලින්ම සක්‍රිය කිරීම
-            
-            const savedData = localStorage.getItem("japanese_study_data");
-            if(savedData){
-                studyData = JSON.parse(savedData);
-            } else {
-                studyData = [...defaultStudyData];
-                saveDataToStorage();
-            }
-            
-            const t=localStorage.getItem("japanese_wrong_words");
-            t&&(wrongWords=JSON.parse(t));
-            
-            const countEl = document.getElementById("total-words-count");
-            if(countEl) countEl.innerText = studyData.length;
-            
-            updateCard();
-            renderAdminWordList();
-            renderWrongWords();
-        }
-        
-        function saveDataToStorage(){
-            localStorage.setItem("japanese_study_data",JSON.stringify(studyData));
-            const countEl = document.getElementById("total-words-count");
-            if(countEl) countEl.innerText=studyData.length;
-        }
-        
+        const defaultStudyData=[{term:"あさ",definition:"උදේ"},{term:"うえ",definition:"උඩ"},{term:"いえ",definition:"ගෙදර / නිවස"},{term:"えび",definition:"ඉස්සා"},{term:"おと",definition:"ශබ්දය"},{term:"かお",definition:"මුහුණ"},{term:"きた",definition:"උතුර"},{term:"くるま",definition:"කාර් (රථය)"},{term:"けむり",definition:"දුම"},{term:"ここ",definition:"මෙතන / මෙතැන"},{term:"さとう",definition:"සීනි"},{term:"しお",definition:"ලුණු"},{term:"すし",definition:"කෑමක්"},{term:"せかい",definition:"ලෝකය"},{term:"そら",definition:"අහස"},{term:"たけ",definition:"උණ ගස"},{term:"ちかい",definition:"ළඟ"},{term:"とけい",definition:"ඔරලෝසුව"},{term:"つま",definition:"බිරිඳ"},{term:"なか",definition:"ඇතුළ"},{term:"にし",definition:"බස්නාහිර"},{term:"ぬりえ",definition:"පාට කරන චිත්‍ර පොත"},{term:"ねこ",definition:"පූසා"},{term:"のど",definition:"උගුර"},{term:"はし",definition:"කෑම කන කූරු / පාලම"},{term:"ひる",definition:"දවල්"},{term:"ふね",definition:"නැව"},{term:"へび",definition:"සර්පයා"},{term:"ほし",definition:"තරුව"},{term:"まくら",definition:"කොට්ටය"},{term:"みみ",definition:"කන"},{term:"むし",definition:"කෘමි සතුන්"},{term:"め",definition:"ඇස"},{term:"もり",definition:"කැලය"},{term:"やま",definition:"කන්ද"},{term:"ゆき",definition:"හිම"},{term:"よる",definition:"රෑ"},{term:"あお",definition:"නිල් පාට"},{term:"あい",definition:"ආදරය"},{term:"えき",definition:"දුම්රිය නැවතුම් පොළ"},{term:"かさ",definition:"කුඩය"},{term:"きそく",definition:"නීති රීති"},{term:"あし",definition:"කකුල"},{term:"らくだ",definition:"ඔටුවා"},{term:"りんご",definition:"ඇපල්"},{term:"るす",definition:"නොමැතිවීම"},{term:"れきし",definition:"ඉතිහාසය"},{term:"ろうか",definition:"කොරිඩෝව"},{term:"わに",definition:"කිඹුලා"},{term:"みかん",definition:"දොඩම්"},{term:"がっこう",definition:"පාසල"},{term:"ぎんこう",definition:"බැංකුව"},{term:"くだもの",definition:"පළතුරු"},{term:"げたばこ",definition:"සපත්තු රාක්කය"},{term:"ごみ",definition:"කුණු"},{term:"ざっし",definition:"සඟරාව"},{term:"じかん",definition:"වේලාව"},{term:"ずひょう",definition:"චිත්‍ර එකතුව"},{term:"ぜろ",definition:"0 (බංදුව)"},{term:"ぞう",definition:"අලියා"},{term:"でんしゃ",definition:"දුම්රිය"},{term:"ばしょ",definition:"ස්ථානය"},{term:"びっくり",definition:"පුදුමය"},{term:"べんり",definition:"පහසුයි / ප්‍රයෝජනවත්"},{term:"ぼうし",definition:"තොප්පිය"},{term:"かっぱつ",definition:"ක්‍රියාශීලී"},{term:"どろぼう",definition:"ஹොරා"},{term:"こおり",definition:"අයිස්"},{term:"おおい",definition:"බහුල"},{term:"おおさκα",definition:"Osaka ප්‍රාන්තය"},{term:"おおきい",definition:"විශාලය"},{term:"とお",definition:"10 (දහය)"},{term:"は",definition:"දත"},{term:"くちびる",definition:"තොල්"},{term:"ほっぺた",definition:"කම්මුල"},{term:"くבי",definition:"බෙල්ල"},{term:"ひざ",definition:"දණහිස"},{term:"せなか",definition:"පිට"},{term:"むね",definition:"පපුව"},{term:"おなか",definition:"බඩ"},{term:"うて",definition:"අත / බාහුව"},{term:"ふともも",definition:"කලවා"},{term:"ひじ",definition:"වැලමิต"},{term:"かかと",definition:"විලුඹ"},{term:"あしくび",definition:"වළලු කර"},{term:"あしのうら",definition:"යටි පතුල"},{term:"ゆび",definition:"ඇඟිලි"},{term:"ゆびわ",definition:"මුදුව"},{term:"つめ",definition:"නියපොතු"},{term:"へそ",definition:"නාභිය"},{term:"て",definition:"අත"},{term:"てくび",definition:"මැණික් කටුව"},{term:"おしり",definition:"නිතඹ"},{term:"からだ",definition:"ශරීරය"},{term:"くち",definition:"කට"},{term:"かみのけ",definition:"කොණ්ඩය"},{term:"にっき",definition:"දිනපොත"},{term:"せっけん",definition:"සබන්"},{term:"けっこん",definition:"විවාහය"},{term:"さっき",definition:"කලින්"},{term:"きって",definition:"මුද්දර"},{term:"とおる",definition:"පසුකරනවා"},{term:"あいます",definition:"හමුවෙනවා"},{term:"あいします",definition:"ආදරයකරනවා"},{term:"あびます",definition:"නානවා"},{term:"あそびます",definition:"සෙල්ලම්කරනවා"},{term:"あらいます",definition:"සෝදනවා"},{term:"あけます",definition:"අරිනවා"},{term:"あんないします",definition:"මඟපෙන්වනවා"},{term:"いいます",definition:"කියනවා"},{term:"あるきます",definition:"ඇවිදිනවා"},{term:"よみます",definition:"කියවනවා"},{term:"います",definition:"ඉන්නවා"},{term:"いります",definition:"දානවා"},{term:"うります",definition:"විකුණනවා"},{term:"うけます",definition:"පෙනීසිටිනවා"},{term:"うんどうします",definition:"ව්‍යායාමකරනවා"},{term:"うたいます",definition:"ගායනාකරනවා"},{term:"おきます",definition:"අවදිවෙනවා"},{term:"えらびます",definition:"තෝරනවා"},{term:"おりまශ",definition:"බහිනවා"},{term:"おしえます",definition:"උගන්වනවා"},{term:"おどります",definition:"නටනවා"},{term:"おちます",definition:"වැටෙනවා"},{term:"おどろきます",definition:"පුදුමවෙනවා"},{term:"およぎます",definition:"පීනනවා"},{term:"かけます",definition:"එල්ලනවා"},{term:"かぶります",definition:"පළඳිනවා"},{term:"かえります",definition:"ආපසුයනවා"},{term:"かちます",definition:"දිනනවා"},{term:"かんがえます",definition:"සිතනවා"},{term:"かきます",definition:"ලියනවා"},{term:"かいます",definition:"මිලදීගන්නවා"},{term:"ききます",definition:"අහනවා"},{term:"きます",definition:"එනවා / අඳිනවා"},{term:"きこえます",definition:"ඇහෙනවා"},{term:"まわります",definition:"කැරකෙනවා"},{term:"くらべます",definition:"සසඳනවා"},{term:"くらします",definition:"ජීවත්වෙනවා"}];
+        const timeQuizPool=[{q:"いちじ (Ichi-ji)",a:"පැය 1:00"},{q:"にじ (Ni-ji)",a:"පැය 2:00"},{q:"さんじ (San-ji)",a:"පැය 3:00"},{q:"よじ (Yo-ji) ⚠",a:"පැය 4:00"},{q:"ごじ (Go-ji)",a:"පැය 5:00"},{q:"ろくじ (Rokuku-ji)",a:"පැය 6:00"},{q:"しちじ (Shichi-ji) ⚠",a:"පැය 7:00"},{q:"はちじ (Hachi-ji)",a:"පැය 8:00"},{q:"くじ (Ku-ji) ⚠",a:"පැය 9:00"},{q:"じゅうじ (Juu-ji)",a:"පැය 10:00"},{q:"じゅういちじ",a:"පැය 11:00"},{q:"じゅうにじ",a:"පැය 12:00"},{q:"いっぷん",a:"විනාඩි 1"},{q:"にふん",a:"විනාඩි 2"},{q:"さんぷん",a:"විනාඩි 3"},{q:"よんふん",a:"විනාඩි 4"},{q:"ごふん",a:"විනාඩි 5"},{q:"ろっぷん",a:"විනාඩි 6"},{q:"ななふん",a:"විනාඩි 7"},{q:"はっぷん",a:"විනාඩි 8"},{q:"きゅうふん",a:"විනාඩි 9"},{q:"じゅっぷん",a:"විනාඩි 10"},{q:"さんじはん",a:"පැය 3:30 (හමාරයි)"},{q:"くじはん ⚠",a:"පැය 9:30 (හමාරයි)"},{q:"ごぜん いちじ",a:"පෙරවරු (AM) 1:00"},{q:"ごご よじ ⚠",a:"පස්වරු (PM) 4:00"}];
+        const particleQuizPool=[{q:"わたし [ ] ミルクを のみます。",a:"は",m:"මම කිරි බොනවා.",o:["は","を","に","で"]},{q:"これは あなた [ ] ほんえきですか。",a:"の",m:"මේක ඔයාගේ පොතද?",o:["の","と","が","は"]},{q:"あした がっこう [ ] いきます。",a:"へ",m:"හෙට පාසලට යනවා.",o:["へ","を","で","が"]},{q:"ともだち [ ] えいがを みました。",a:"と",m:"යහළුවා සමඟ චිත්‍රපටියක් බැලුවා.",o:["と","に","も","で"]},{q:"にほんご [ ] しんぶんを よみます。",a:"を",m:"ජපන් භාෂාවෙන් පුවත්පත් කියවනවා.",o:["ကို අඟවන 'を'","は","に","が"]},{q:"カメラ [ ] かいました。とけい [ ] かいました。",a:"も",m:"කැමරාවක් මිලදී ගත්තා. ඔරලෝසුවක්ද මිලදී ගත්තා.",o:["も","は","で","の"]},{q:"としょかん [ ] べんきょうします。",a:"で",m:"පුස්තකාලයේදී පාඩම් කරනවා.",o:["で","に","へ","を"]},{q:"つくえの うえ [ ] ペン가 あります。",a:"に",m:"මේසය උඩ පෑනක් තිබේ.",o:["に","で","を","へ"]},{q:"だれ [ ] きますか。",a:"が",m:"කවුද පැමිණෙන්නේ?",o:["が","は","を","に"]},{q:"あそこ [ ] いぬが いますね。",a:"に",m:"අතන බල්ලෙක් ඉන්නවා නේද?",o:["に","で","へ","の"]},{q:"スプーン [ ] ごはんを たべます。",a:"で",m:"හැන්දෙන් බත් කනවා.",o:["で","を","に","と"]},{q:"ねこ [ ] いぬ [ ] すきです。",a:"と",m:"පූසන්ට සහ බල්ලන්ට කැමතියි.",o:["と","で","は","へ"]},{q:"おとうと [ ] にほん [ ] いきます。",a:"は",m:"මල්ලි ජපානයට යනවා. (පළමු හිස්තැනට)",o:["は","を","で","の"]},{q:"きょうは なんようびです [ ]。",a:"か",m:"අද මොන දවසද? (ප්‍රශ්නාර්ථ)",o:["か","ね","よ","わ"]},{q:"きょうと [ ] いきました。",a:"へ",m:"කියෝතෝ වෙත ගියා.",o:["へ","で","を","の"]},{q:"おとうさんの くるま [ ] おおきいです。",a:"は",m:"තාත්තාගේ කාර් එක විශාලයි.",o:["は","を","に","で"]},{q:"にほん [ ] おみやげを かいました。",a:"の",m:"ජපානයේ සමරුවක් මිලදී ගත්තා.",o:["の","へ","と","も"]},{q:"えんぴつ [ ] かいてください。",a:"で",m:"පැන්සලෙන් ලියන්න.",o:["で","を","に","が"]},{q:"すし [ ] たべたことが ありますか。",a:"を",m:"සුෂි කාලා තියෙනවද?",o:["ကို අඟවන 'を'","に","で","へ"]},{q:"おとうさんは ぎんこういんです [ ]。",a:"か",m:"තාත්තා බැංකු නිලධාරියෙක්ද?",o:["か","ね","わ","が"]}];
+        let studyData=[],currentCardIndex=0,currentQuizIndex=0,score=0,canAnswer=!0,activeQuizData=[],wrongWords=[],tQuizIndex=0,tScore=0,tActiveData=[],tCanAnswer=!0,pQuizIndex=0,pScore=0,pActiveData=[],pCanAnswer=!0;
+        const $=i=>document.getElementById(i);
+        function loadData(){const e=localStorage.getItem("japanese_study_data");studyData=e?JSON.parse(e):[...defaultStudyData];saveDataToStorage();const w=localStorage.getItem("japanese_wrong_words");w&&(wrongWords=JSON.parse(w));if(localStorage.getItem("dark_mode")==="enabled"){document.body.classList.add("dark-mode");$("dark-toggle-btn").innerText="☀️"}updateCard();renderAdminWordList();renderWrongWords()}
+        function toggleDarkMode(){if(document.body.classList.toggle("dark-mode")){localStorage.setItem("dark_mode","enabled");$("dark-toggle-btn").innerText="☀️"}else{localStorage.setItem("dark_mode","disabled");$("dark-toggle-btn").innerText="🌙"}}
+        function saveDataToStorage(){localStorage.setItem("japanese_study_data",JSON.stringify(studyData));$("total-words-count").innerText=studyData.length}
         function saveWrongWordsToStorage(){localStorage.setItem("japanese_wrong_words",JSON.stringify(wrongWords))}
-        
-        function updateCard(){
-            const e=document.querySelector(".flashcard");
-            if(!e) return;
-            e.classList.remove("flipped");
-            if(0===studyData.length) {
-                document.getElementById("front-text").innerText="වචන නැත";
-                document.getElementById("back-text").innerText="කරුණාකර ඇතුළත් කරන්න";
-                document.getElementById("card-indicator").innerText="0 / 0";
-                return;
-            }
-            if(currentCardIndex>=studyData.length) currentCardIndex=0;
-            setTimeout(()=>{
-                document.getElementById("front-text").innerText=studyData[currentCardIndex].term;
-                document.getElementById("back-text").innerText=studyData[currentCardIndex].definition;
-                document.getElementById("card-indicator").innerText=`${currentCardIndex+1} / ${studyData.length}`;
-            },150);
-        }
-        
+        function updateCard(){const e=document.querySelector(".flashcard");if(e.classList.remove("flipped"),0===studyData.length)return $("front-text").innerText="වචන නැත",$("back-text").innerText="කරුණාකර ඇතුළත් කරන්න",void($("card-indicator").innerText="0 / 0");currentCardIndex>=studyData.length&&(currentCardIndex=0);setTimeout(()=>{$("front-text").innerText=studyData[currentCardIndex].term;$("back-text").innerText=studyData[currentCardIndex].definition;$("card-indicator").innerText=`${currentCardIndex+1} / ${studyData.length}`},150)}
         function toggleFlip(){studyData.length>0&&document.querySelector(".flashcard").classList.toggle("flipped")}
         function nextCard(){studyData.length>0&&(currentCardIndex=(currentCardIndex+1)%studyData.length,updateCard())}
         function prevCard(){studyData.length>0&&(currentCardIndex=(currentCardIndex-1+studyData.length)%studyData.length,updateCard())}
-        
-        function switchView(e){
-            document.getElementById("flashcard-section").classList.add("hidden");
-            document.getElementById("quiz-section").classList.add("hidden");
-            document.getElementById("admin-section").classList.add("hidden");
-            document.getElementById("intro-section").classList.add("hidden");
-            
-            document.getElementById("show-cards-btn").classList.add("secondary");
-            document.getElementById("show-quiz-btn").classList.add("secondary");
-            document.getElementById("show-admin-btn").classList.add("secondary");
-            
-            if("cards"===e){
-                document.getElementById("flashcard-section").classList.remove("hidden");
-                document.getElementById("show-cards-btn").classList.remove("secondary");
-                updateCard();
-            }else if("quiz"===e){
-                document.getElementById("quiz-section").classList.remove("hidden");
-                document.getElementById("show-quiz-btn").classList.remove("secondary");
-                startQuiz();
-            }else if("admin"===e){
-                document.getElementById("admin-section").classList.remove("hidden");
-                document.getElementById("show-admin-btn").classList.remove("secondary");
-                renderAdminWordList();
-            }else if("intro"===e){
-                document.getElementById("intro-section").classList.remove("hidden");
-            }
-        }
-        
-        function startQuiz(){
-            currentQuizIndex=0;
-            score=0;
-            canAnswer=!0;
-            if(studyData.length<4){
-                document.getElementById("quiz-game").classList.add("hidden");
-                document.getElementById("quiz-result").classList.remove("hidden");
-                document.getElementById("score-display").innerText="Quiz එක ආරම්භ කිරීමට අවම වශයෙන් වචන 4ක් වත් තිබිය යුතුය.";
-                return;
-            }
-            const e=Math.min(10,studyData.length);
-            activeQuizData=[...studyData].sort(()=>Math.random()-.5).slice(0,e);
-            document.getElementById("quiz-game").classList.remove("hidden");
-            document.getElementById("quiz-result").classList.add("hidden");
-            document.getElementById("quiz-feedback").innerText="";
-            loadQuizQuestion();
-        }
-        
-        function loadQuizQuestion(){
-            if(currentQuizIndex>=activeQuizData.length) return showQuizResults();
-            canAnswer=!0;
-            document.getElementById("quiz-feedback").innerText="";
-            const e=activeQuizData[currentQuizIndex];
-            document.getElementById("quiz-question-text").innerText=`"${e.term}" යන්නෙහි සිංහල තේරුම කුමක්ද? (${currentQuizIndex+1}/${activeQuizData.length})`;
-            
-            let t=[e.definition];
-            while(t.length<4){
-                let randDef=studyData[Math.floor(Math.random()*studyData.length)].definition;
-                if(!t.includes(randDef)) t.push(randDef);
-            }
-            t.sort(()=>Math.random()-.5);
-            const n=document.getElementById("options-container");
-            n.innerHTML="";
-            t.forEach(t=>{
-                const a=document.createElement("button");
-                a.className="option-btn";
-                a.innerText=t;
-                a.onclick=()=>checkAnswer(a,t,e.definition);
-                n.appendChild(a);
-            });
-        }
-        
-        function checkAnswer(e,t,n){
-            if(!canAnswer)return;
-            canAnswer=!1;
-            const a=document.getElementById("quiz-feedback");
-            if(t===n){
-                score++;
-                e.style.backgroundColor="#c8e6c9";
-                e.style.borderColor="#81c784";
-                e.style.color="#2e7d32";
-                a.innerText="නිවැරදියි! 🎉";
-                a.className="feedback correct";
-            }else{
-                e.style.backgroundColor="#ffcdd2";
-                e.style.borderColor="#e57373";
-                e.style.color="#c62828";
-                a.innerText=`වැරදියි! නිවැරදි පිළිතුර: ${n}`;
-                a.className="feedback wrong";
-                if(activeQuizData[currentQuizIndex] && !wrongWords.some(w=>w.term===activeQuizData[currentQuizIndex].term)){
-                    wrongWords.push({term:activeQuizData[currentQuizIndex].term,definition:n});
-                    saveWrongWordsToStorage();
-                    renderWrongWords();
-                }
-            }
-            setTimeout(()=>{currentQuizIndex++;loadQuizQuestion()},1200);
-        }
-        
-        function showQuizResults(){
-            document.getElementById("quiz-game").classList.add("hidden");
-            document.getElementById("quiz-result").classList.remove("hidden");
-            document.getElementById("score-display").innerText=`ඔබේ ලකුණු සංඛ්‍යාව: ${score} / ${activeQuizData.length}`;
-        }
-        
-        function renderWrongWords(){
-            const e=document.getElementById("wrong-words-list"),t=document.getElementById("wrong-count-badge");
-            if(e&&t){
-                t.innerText=wrongWords.length;
-                if(0===wrongWords.length){
-                    e.innerHTML='<div class="empty-text" style="color: #2e7d32;">වැරදුණු වචන කිසිවක් නැත! 🌟</div>';
-                }else{
-                    e.innerHTML="";
-                    wrongWords.forEach(t=>{
-                        const n=document.createElement("div");
-                        n.className="word-item wrong-word-item";
-                        n.innerHTML=`<div class="word-info"><span class="word-jp">${t.term}</span><br><span class="word-si">${t.definition}</span></div>`;
-                        e.appendChild(n);
-                    });
-                }
-            }
-        }
-        
-        function clearWrongWordsList(){
-            if(0===wrongWords.length) return alert("මකන්න තරම් වැරදුණු වචන ලැයිස්තුවේ නැත.");
-            if(confirm("වැරදුණු වචන ලැයිස්තුව සම්පූර්ණයෙන්ම මකා දමන්නද?")){
-                wrongWords=[];
-                localStorage.removeItem("japanese_wrong_words");
-                renderWrongWords();
-            }
-        }
-        
-        function addNewWord(){
-            const e=document.getElementById("input-term"),t=document.getElementById("input-definition"),n=e.value.trim(),a=t.value.trim();
-            if(""===n||""===a) return alert("කරුණාකර ජපන් වචනය සහ සිංහල තේරුම යන දෙකම ඇතුළත් කරන්න.");
-            studyData.unshift({term:n,definition:a});
-            saveDataToStorage();
-            renderAdminWordList();
-            e.value="";
-            t.value="";
-            alert("නව වචනය සාර්ථකව ඇතුළත් කළා! 🎉");
-        }
-        
-        function enableEditMode(index) {
-            const itemEl = document.getElementById(`word-item-${index}`);
-            if(!itemEl) return;
-            
-            const currentWord = studyData[index];
-            itemEl.innerHTML = `
-                <div class="word-edit-mode">
-                    <input type="text" id="edit-term-${index}" class="edit-input" value="${currentWord.term}" placeholder="ජපන් වචනය">
-                    <input type="text" id="edit-def-${index}" class="edit-input" value="${currentWord.definition}" placeholder="සිංහල තේරුම">
-                    <div class="action-btns" style="justify-content: flex-end; margin-top: 4px;">
-                        <button class="save-btn" onclick="saveEditedWord(${index})">Save</button>
-                        <button class="cancel-btn" onclick="renderAdminWordList()">Cancel</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById(`edit-term-${index}`).focus();
-        }
-
-        function saveEditedWord(index) {
-            const editedTerm = document.getElementById(`edit-term-${index}`).value.trim();
-            const editedDef = document.getElementById(`edit-def-${index}`).value.trim();
-            
-            if("" === editedTerm || "" === editedDef) {
-                return alert("හිස්ව තැබිය නොහැක. කරුණාකර දත්ත ඇතුළත් කරන්න.");
-            }
-            
-            studyData[index].term = editedTerm;
-            studyData[index].definition = editedDef;
-            
-            saveDataToStorage();
-            renderAdminWordList();
-            updateCard();
-            alert("වචනය සාර්ථකව යාවත්කාලීන කළා! 🔄");
-        }
-
-        function deleteWord(e){
-            if(confirm(`"${studyData[e].term}" වචනය ඉවත් කිරීමට අවශ්‍යද?`)){
-                studyData.splice(e,1);
-                saveDataToStorage();
-                renderAdminWordList();
-                if(currentCardIndex>=studyData.length&&studyData.length>0) currentCardIndex=studyData.length-1;
-                updateCard();
-            }
-        }
-        
-        function renderAdminWordList(){
-            const e=document.getElementById("word-list-container");
-            if(document.getElementById("total-words-count")) {
-                document.getElementById("total-words-count").innerText=studyData.length;
-            }
-            if(!e) return;
-            e.innerHTML="";
-            if(0===studyData.length){
-                e.innerHTML='<div class="empty-text">ලැයිස්තුවේ වචන කිසිවක් නැත.</div>';
-                return;
-            }
-            studyData.forEach((t,n)=>{
-                const a=document.createElement("div");
-                a.className="word-item";
-                a.id = `word-item-${n}`;
-                a.innerHTML=`
-                    <div class="word-view-mode">
-                        <div class="word-info">
-                            <span class="word-jp">${t.term}</span><br>
-                            <span class="word-si">${t.definition}</span>
-                        </div>
-                        <div class="action-btns">
-                            <button class="edit-btn" onclick="enableEditMode(${n})">සංස්කරණය</button>
-                            <button class="delete-btn" onclick="deleteWord(${n})">මකන්න</button>
-                        </div>
-                    </div>
-                `;
-                e.appendChild(a);
-            });
-        }
-        
-        function exportWords(){
-            if(0===studyData.length) return alert("Backup ලබා ගැනීමට තරම් වචන ලැයිස්තුවේ නොමැත.");
-            const e="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(studyData,null,2)),t=document.createElement("a");
-            t.setAttribute("href",e);
-            t.setAttribute("download","japanese_vocabulary_backup.json");
-            document.body.appendChild(t);
-            t.click();
-            t.remove();
-        }
-        
-        function importWords(e){
-            const t=e.target;
-            if(0===t.files.length) return;
-            const n=t.files[0],a=new FileReader();
-            a.onload=function(t){
-                try{
-                    const data=JSON.parse(t.target.result);
-                    if(Array.isArray(data)){
-                        if(confirm("මෙම Backup ගොනුව ඇතුළත් කිරීමෙන් දැනට පවතින වචන සියල්ල වෙනස් වේ. ඉදිරියට යන්නද?")){
-                            studyData=data;
-                            saveDataToStorage();
-                            renderAdminWordList();
-                            updateCard();
-                            alert("දත්ත සාර්ථකව Restore කළා! 🔄");
-                        }
-                    }else{
-                        alert("වැරදි ගොනු ආකෘතියකි (Invalid Backup file).");
-                    }
-                }catch(err){
-                    alert("ගොනුව කියවීමේදී දෝෂයක් සිදු විය.");
-                }
-                e.target.value="";
-            };
-            a.readAsText(n);
-        }
-
-        function importExcelWords(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    if (jsonData.length === 0) {
-                        return alert("තෝරාගත් Excel ගොනුවේ දත්ත කිසිවක් නොමැත.");
-                    }
-
-                    const firstRow = jsonData[0];
-                    if (!firstRow.hasOwnProperty('term') || !firstRow.hasOwnProperty('definition')) {
-                        return alert("වැරදි Excel ආකෘතියකි!\nකරුණාකර Excel ශීට් එකේ පළමු පේළියේ තීරු ශීර්ෂ (Headers) ලෙස 'term' සහ 'definition' යොදන්න.");
-                    }
-
-                    if (confirm(`Excel ශීට් එකෙන් වචන ${jsonData.length} ක් හමු විය. මේවා දැනට පවතින ලැයිස්තුවට එකතු කරන්නද?`)) {
-                        const formattedData = jsonData.map(row => ({
-                            term: String(row.term).trim(),
-                            definition: String(row.definition).trim()
-                        }));
-
-                        studyData = [...formattedData, ...studyData];
-                        saveDataToStorage();
-                        renderAdminWordList();
-                        updateCard();
-                        alert("Excel වචන සියල්ල සාර්ථකව ඇතුළත් කළා! 📊🎉");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert("Excel ගොනුව කියවීමේදී දෝෂයක් සිදු විය.");
-                }
-                event.target.value = "";
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        
-        loadData();
+        function switchView(e){["flashcard-section","quiz-section","particles-section","intro-section","time-section","admin-section"].forEach(i=>$(i).classList.add("hidden"));["show-cards-btn","show-quiz-btn","show-particles-btn","show-intro-btn","show-time-btn","show-admin-btn"].forEach(i=>$(i).classList.add("secondary"));$(`${e==='cards'?'flashcard':e}-section`).classList.remove("hidden");$(`show-${e}-btn`).classList.remove("secondary");if("cards"===e)updateCard();else if("quiz"===e)startQuiz();else if("particles"===e)startParticlesQuiz();else if("time"===e)toggleTimeSubView("learn");else if("admin"===e)renderAdminWordList()}
+        function toggleTimeSubView(e){if("learn"===e){$("time-learn-content").classList.remove("hidden");$("time-quiz-content").classList.add("hidden");$("time-learn-btn").classList.remove("secondary");$("time-quiz-btn").classList.add("secondary")}else{$("time-learn-content").classList.add("hidden");$("time-quiz-content").classList.remove("hidden");$("time-learn-btn").classList.add("secondary");$("time-quiz-btn").classList.remove("secondary");startTimeQuiz()}}
+        function startTimeQuiz(){tQuizIndex=0;tScore=0;tCanAnswer=!0;tActiveData=[...timeQuizPool].sort(()=>Math.random()-.5).slice(0,10);$("t-quiz-game").classList.remove("hidden");$("t-quiz-result").classList.add("hidden");$("t-quiz-feedback").innerText="";loadTimeQuizQuestion()}
+        function loadTimeQuizQuestion(){if(tQuizIndex>=tActiveData.length)return $("t-quiz-game").classList.add("hidden"),$("t-quiz-result").classList.remove("hidden"),void($("t-score-display").innerText=`ඔබේ ලකුණු සංඛ්‍යාව: ${tScore} / ${tActiveData.length}`);tCanAnswer=!0;$("t-quiz-feedback").innerText="";const e=tActiveData[tQuizIndex];$("t-quiz-question-text").innerText=`ජපන් බසින් "${e.q}" යනු කුමන වේලාවද? (${tQuizIndex+1}/${tActiveData.length})`;let t=[e.a];for(;t.length<4;){let e=timeQuizPool[Math.floor(Math.random()*timeQuizPool.length)].a;t.includes(e)||t.push(e)}t.sort(()=>Math.random()-.5);const i=$("t-options-container");i.innerHTML="",t.forEach(t=>{const n=document.createElement("button");n.className="option-btn",n.innerText=t,n.onclick=()=>checkTimeAnswer(n,t,e.a),i.appendChild(n)})}
+        function checkTimeAnswer(e,t,i){if(!tCanAnswer)return;tCanAnswer=!1;const n=$("t-quiz-feedback");t===i?(tScore++,e.style.backgroundColor="#c8e6c9",e.style.borderColor="#81c784",n.innerText="නිවැරදියි! 🌟",n.className="feedback correct"):(e.style.backgroundColor="#ffcdd2",e.style.borderColor="#e57373",n.innerText=`වැරදියි! නිවැරදි පිළිතුර: ${i}`,n.className="feedback wrong"),setTimeout(()=>{tQuizIndex++,loadTimeQuizQuestion()},1500)}
+        function startParticlesQuiz(){pQuizIndex=0;pScore=0;pCanAnswer=!0;pActiveData=[...particleQuizPool].sort(()=>Math.random()-.5).slice(0,10);$("p-quiz-game").classList.remove("hidden");$("p-quiz-result").classList.add("hidden");$("p-quiz-feedback").innerText="";loadParticlesQuestion()}
+        function loadParticlesQuestion(){if(pQuizIndex>=pActiveData.length)return $("p-quiz-game").classList.add("hidden"),$("p-quiz-result").classList.remove("hidden"),void($("p-score-display").innerText=`ඔබේ ලකුණු සංඛ්‍යාව: ${pScore} / ${pActiveData.length}`);pCanAnswer=!0;$("p-quiz-feedback").innerText="";const e=pActiveData[pQuizIndex];$("p-quiz-question-text").innerText=`${e.q} (${pQuizIndex+1}/${pActiveData.length})`;$("p-quiz-hint").innerText=`තේරුම: ${e.m}`;let t=[...e.o].sort(()=>Math.random()-.5);const i=$("p-options-container");i.innerHTML="",t.forEach(t=>{const n=document.createElement("button");n.className="option-btn",n.innerText=t,n.onclick=()=>checkParticlesAnswer(n,t,e.a),i.appendChild(n)})}
+        function checkParticlesAnswer(e,t,i){if(!pCanAnswer)return;pCanAnswer=!1;const n=$("p-quiz-feedback");const cleanT=t.includes("ကို အඟවන")?"を":t;if(cleanT===i){pScore++;e.style.backgroundColor="#c8e6c9";e.style.borderColor="#81c784";n.innerText="නිවැරදියි! 🎉";n.className="feedback correct"}else{e.style.backgroundColor="#ffcdd2";e.style.borderColor="#e57373";n.innerText=`වැරදියි! නිවැරදි නිපාතය: ${i}`;n.className="feedback wrong"}setTimeout(()=>{pQuizIndex++;loadParticlesQuestion()},1500)}
+        function startQuiz(){if(currentQuizIndex=0,score=0,canAnswer=!0,studyData.length<4)return $("quiz-game").classList.add("hidden"),$("quiz-result").classList.remove("hidden"),void($("score-display").innerText="Quiz එක ආරම්භ කිරීමට අවම වශයෙන් වචන 4ක් වත් තිබිය යුතුය.");const e=Math.min(10,studyData.length);activeQuizData=[...studyData].sort(()=>Math.random()-.5).slice(0,e),$("quiz-game").classList.remove("hidden"),$("quiz-result").classList.add("hidden"),$("quiz-feedback").innerText="",loadQuizQuestion()}
+        function loadQuizQuestion(){if(currentQuizIndex>=activeQuizData.length)return void($("quiz-game").classList.add("hidden"),$("quiz-result").classList.remove("hidden"),$("score-display").innerText=`ඔබේ ලකුණු සංඛ්‍යාව: ${score} / ${activeQuizData.length}`);canAnswer=!0;$("quiz-feedback").innerText="";const e=activeQuizData[currentQuizIndex];$("quiz-question-text").innerText=`"${e.term}" යන්නෙහි සිංහල තේරුම කුමක්ද? (${currentQuizIndex+1}/${activeQuizData.length})`;let t=[e.definition];for(;t.length<4;){let e=studyData[Math.floor(Math.random()*studyData.length)].definition;t.includes(e)||t.push(e)}t.sort(()=>Math.random()-.5);const i=$("options-container");i.innerHTML="",t.forEach(t=>{const n=document.createElement("button");n.className="option-btn",n.innerText=t,n.onclick=()=>checkAnswer(n,t,e.definition),i.appendChild(n)})}
+        function checkAnswer(e,t,i){if(!canAnswer)return;canAnswer=!1;const n=$("quiz-feedback");t===i?(score++,e.style.backgroundColor="#c8e6c9",e.style.borderColor="#81c784",n.innerText="නිවැරදියි! 🎉",n.className="feedback correct"):(e.style.backgroundColor="#ffcdd2",e.style.borderColor="#e57373",n.innerText=`වැරදියි! නිවැරදි පිළිතුර: ${i}`,n.className="feedback wrong",wrongWords.some(e=>e.term===activeQuizData[currentQuizIndex].term)||(wrongWords.push({term:activeQuizData[currentQuizIndex].term,definition:i}),saveWrongWordsToStorage(),renderWrongWords())),setTimeout(()=>{currentQuizIndex++,loadQuizQuestion()},1200)}
+        function renderWrongWords(){const e=$("wrong-words-list"),t=$("wrong-count-badge");e&&t&&(t.innerText=wrongWords.length,0===wrongWords.length?e.innerHTML='<div class="empty-text" style="color:#2e7d32">වැරදුණු වචන කිසිවක් නැත! 🌟</div>':(e.innerHTML="",wrongWords.forEach(t=>{const i=document.createElement("div");i.className="word-item wrong-word-item",i.innerHTML=`<div class="word-info"><span class="word-jp">${t.term}</span><br><span class="word-si">${t.definition}</span></div>`,e.appendChild(i)})))}
+        function clearWrongWordsList(){if(0===wrongWords.length)return void alert("මකන්න තරම් වැරදුණු වචන ලැයිස්තුවේ නැත.");confirm("වැරදුණු වචන ලැයිස්තුව සම්පූර්ණයෙන්ම මකා දමන්නද?")&&(wrongWords=[],localStorage.removeItem("japanese_wrong_words"),renderWrongWords())}
+        function addNewWord(){const e=$("input-term"),t=$("input-definition"),i=e.value.trim(),n=t.value.trim();if(""===i||""===n)return void alert("කරුණාකර ජපන් වචනය සහ සිංහල තේරුම යන දෙකම ඇතුළත් කරන්න.");studyData.unshift({term:i,definition:n}),saveDataToStorage(),renderAdminWordList(),e.value="",t.value="",alert("නව වචනය සාර්ථකව ඇතුළත් කළා! 🎉")}
+        function deleteWord(e){confirm(`"${studyData[e].term}" වචනය ඉවත් කිරීමට අවශ්‍යද?`)&&(studyData.splice(e,1),saveDataToStorage(),renderAdminWordList(),currentCardIndex>=studyData.length&&studyData.length>0&&(currentCardIndex=studyData.length-1),updateCard())}
+        function renderAdminWordList(){const e=$("word-list-container");if($("total-words-count").innerText=studyData.length,e.innerHTML="",0===studyData.length)return void(e.innerHTML='<div class="empty-text">ලැයිස්තුවේ වචන කිසිවක් නැත.</div>');studyData.forEach((t,i)=>{const n=document.createElement("div");n.className="word-item",n.innerHTML=`<div class="word-info"><span class="word-jp">${t.term}</span><br><span class="word-si">${t.definition}</span></div><button class="delete-btn" onclick="deleteWord(${i})">මකන්න</button>`,e.appendChild(n)})}
+        function exportWords(){if(0===studyData.length)return void alert("Backup ලබා ගැනීමට තරම් වචන ලැයිස්තුවේ නොමැත.");const e="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(studyData,null,2)),t=document.createElement("a");t.setAttribute("href",e),t.setAttribute("download","japanese_vocabulary_backup.json"),document.body.appendChild(t),t.click(),t.remove()}
+        function importWords(e){const t=e.target;if(0===t.files.length)return;const i=t.files[0],n=new FileReader;n.onload=function(e){try{const t=JSON.parse(e.target.result);Array.isArray(t)?confirm("මෙම Backup ගොනුව ඇතුළත් කිරීමෙන් දැනට පවතින වචන සියල්ල වෙනස් වේ. ඉදිරියට යන්නද?")&&(studyData=t,saveDataToStorage(),renderAdminWordList(),updateCard(),alert("දත්ත සාර්ථකව Restore කළා! 🔄")):alert("වැරදි ගොනු ආකෘතියකි.")}catch(e){alert("ගොනුව කියවීමේදී දෝෂයක් සිදු විය.")}e.target.value=""},n.readAsText(i)}loadData();
     </script>
 </body>
 </html>
